@@ -6,7 +6,7 @@
 ##                                                                ##
 ## Each variable is associated with a comment. The comment        ##
 ## can help to populate the variables with the appropriate        ##
-## values.							  ##
+## values.							                                          ##
 ##                                                                ##
 ## IMPORTANT NOTE: This file contains plain text passwords and    ##
 ## should be secured to have read permission only by oracle user  ##
