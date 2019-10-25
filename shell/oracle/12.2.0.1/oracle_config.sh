@@ -127,7 +127,7 @@ echo "Step 8 : Config bashrc in /u01/app/oracle/.bashrc for oracle..."
 
 cat >> /home/oracle/.bashrc << EOF
 export ORACLE_BASE=$oracle_home
-export ORACLE_HOME=\$ORACLE_BASE/product/11.2.0/db_1
+export ORACLE_HOME=\$ORACLE_BASE/product/12.2.0/db_1
 export ORACLE_SID=orcl
 export PATH=\$ORACLE_HOME/bin:/usr/sbin:\$PATH
 export LD_LIBRARY_PATH=\$ORACLE_HOME/lib64:/lib64:/usr/lib64
