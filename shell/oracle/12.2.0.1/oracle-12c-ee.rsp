@@ -39,16 +39,16 @@ UNIX_GROUP_NAME=oinstall
 # This is an optional parameter if installing on
 # Windows based Operating System.
 #-------------------------------------------------------------------------------
-INVENTORY_LOCATION=/u01/app/oraInventory
+INVENTORY_LOCATION=/data/oraInventory
 #-------------------------------------------------------------------------------
 # Specify the complete path of the Oracle Home. 
 #-------------------------------------------------------------------------------
-ORACLE_HOME=/u01/app/oracle/product/12.2.0/db_1
+ORACLE_HOME=/data/oracle/product/12.2.0/db_1
 
 #-------------------------------------------------------------------------------
 # Specify the complete path of the Oracle Base. 
 #-------------------------------------------------------------------------------
-ORACLE_BASE=/u01/app/oracle
+ORACLE_BASE=/data/oracle
 
 #-------------------------------------------------------------------------------
 # Specify the installation edition of the component.                     
@@ -341,14 +341,14 @@ oracle.install.db.config.starterdb.storageType=
 #
 # Applicable only when oracle.install.db.config.starterdb.storage=FILE_SYSTEM_STORAGE 
 #-------------------------------------------------------------------------------
-oracle.install.db.config.starterdb.fileSystemStorage.dataLocation=/u01/app/oracle/oradata
+oracle.install.db.config.starterdb.fileSystemStorage.dataLocation=/data/oracle/oradata
 
 #-------------------------------------------------------------------------------
 # Specify the recovery location.
 #
 # Applicable only when oracle.install.db.config.starterdb.storage=FILE_SYSTEM_STORAGE 
 #-------------------------------------------------------------------------------
-oracle.install.db.config.starterdb.fileSystemStorage.recoveryLocation=/u01/app/oracle/fast_recovery_area
+oracle.install.db.config.starterdb.fileSystemStorage.recoveryLocation=/data/oracle/fast_recovery_area
 
 #-------------------------------------------------------------------------------
 # Specify the existing ASM disk groups to be used for storage.
