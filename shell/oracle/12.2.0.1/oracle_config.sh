@@ -3,7 +3,7 @@ set -e
 
 oracle_version=12.2.0.1
 centos_version=7.x
-oracle_home=/u01/app/oracle
+oracle_home=/data/oracle
 
 if [ ! -n "$1" ] ;then
     echo ""
@@ -19,6 +19,7 @@ gcc
 gcc-c++
 ksh
 libaio
+compat-libcap1
 libaio-devel
 numactl-devel
 sysstat
@@ -124,7 +125,7 @@ echo "Step 7 : Successed~!"
 
 echo 
 echo 
-echo "Step 8 : Config bashrc in /u01/app/oracle/.bashrc for oracle..."
+echo "Step 8 : Config bashrc in /data/oracle/.bashrc for oracle..."
 
 cat >> /home/oracle/.bashrc << EOF
 export ORACLE_BASE=$oracle_home
