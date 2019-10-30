@@ -385,7 +385,7 @@ MYORACLESUPPORT_PASSWORD=
 #
 # Example    : SECURITY_UPDATES_VIA_MYORACLESUPPORT=true
 #------------------------------------------------------------------------------
-SECURITY_UPDATES_VIA_MYORACLESUPPORT=
+SECURITY_UPDATES_VIA_MYORACLESUPPORT=true
 
 #------------------------------------------------------------------------------
 # Specify whether user doesn't want to configure Security Updates.
