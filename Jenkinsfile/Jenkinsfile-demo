@@ -1,0 +1,56 @@
+pipeline {
+    //在任何可用的代理上执行Pipeline
+    agent any
+    //参数化变量
+    parameters {
+    //git代码路径【参数值对外隐藏】
+    string(name:'repoUrl', defaultValue: 'http://192.168.1.83/tms/tms.git', description: 'git代码路径')
+    //git分支
+    gitParameter branchFilter: 'origin/(.*)', defaultValue: 'master', name: 'Branch', type: 'PT_BRANCH', description: '构建分支'
+    //环境
+    string(name:'env', defaultValue: 'dev', description: '构建的环境')
+    //镜像tag
+    string(name:'tag', defaultValue: '1.0', description: 'docker镜像tag')
+    }
+    //常量参数，初始确定后一般不需更改
+    environment{
+        //git服务全系统只读账号cred_id【参数值对外隐藏】
+        CRED_ID='55b3cecb-8062-4258-b826-107c5eb9913f'
+    }
+    options {
+        //保持构建的最大个数
+        buildDiscarder(logRotator(numToKeepStr: '5')) 
+    }
+    //定期检查开发代码更新，工作日每晚4点做daily build
+    triggers {
+        pollSCM('H 4 * * 1-5')
+    }
+    //pipeline的各个阶段场景
+    stages {
+        stage('代码获取') {
+            steps {
+              echo "starting fetchCode from ${params.repoUrl}......"
+              // Get some code from a Gitlab repository
+              git branch:params.Branch, credentialsId:CRED_ID, url:params.repoUrl
+            }
+        }
+
+        stage('构建') { 
+            steps {
+                //编译和打包
+                sh "mvn clean install -DskipTests"
+            }
+        }
+
+        stage('构建docker镜像') { 
+            steps {
+                //构建docker镜像
+                sh '''
+                cd ${WORKSPACE}
+                sh push.sh ${env} ${tag}
+                '''
+            }
+        }
+
+    }
+}
