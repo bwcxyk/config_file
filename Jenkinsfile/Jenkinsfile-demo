@@ -6,7 +6,7 @@ pipeline {
     //git代码路径【参数值对外隐藏】
     string(name:'repoUrl', defaultValue: 'http://192.168.1.83/tms/tms.git', description: 'git代码路径')
     //git分支
-    gitParameter branchFilter: 'origin/(.*)', defaultValue: 'master', description: '构建分支', name: 'Branch', selectedValue: 'NONE', type: 'PT_BRANCH'
+    gitParameter branchFilter: 'origin/(.*)', defaultValue: 'master', description: '构建分支', name: 'Branch', selectedValue: 'DEFAULT', type: 'PT_BRANCH'
     //环境
     string(name:'env', defaultValue: 'dev', description: '构建的环境')
     //镜像tag
