@@ -7,7 +7,8 @@ set -e
 # For running kubeadm without an internet connection you have to pre-pull the required master images for the version of choice:
 
 # List images
-#kubeadm config images list
+# 使用 kubeadm config images list 命令得到需要的镜像版本信息，替换脚本中对应的版本信息。
+# kubeadm config images list
 
 KUBE_VERSION=v1.19.3
 KUBE_PAUSE_VERSION=3.2
