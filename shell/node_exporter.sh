@@ -1,7 +1,8 @@
 #!/bin/bash
 
 if [ -d "/usr/local/node_exporter" ];then
-   echo -e "\e[1;31m 目录存在，跳过下载 \e[0m"
+   echo -e "\e[1;31m 目录存在，退出安装 \e[0m"
+   exit 1
 else
    echo -e "\e[1;32m 目录不存在，开始下载 \e[0m"
    # down
