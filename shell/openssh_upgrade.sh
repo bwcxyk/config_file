@@ -5,6 +5,10 @@
 # @File   :openssh_upgrade.sh
 # @Desc   :升级openssh版本至8.4p1
 
+# 如果非root可能存在权限问题，使用如下命令执行
+# sudo su - root<<EOF
+# sh openssh_upgrade.sh
+# EOF
 
 # 下载软件包
 function download_package() {
