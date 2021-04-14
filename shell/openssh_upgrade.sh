@@ -49,7 +49,10 @@ function update() {
 # 还原配置
 function reduction_and_restart() {
 	\mv /etc/pam.d/sshd.bak /etc/pam.d/sshd
+	\mv /etc/ssh/sshd_config.bak /etc/ssh/sshd_config
 	chmod 600 /etc/ssh/*
+	sed -i "s|.*PermitRootLogin.*|PermitRootLogin yes|g" /etc/ssh/sshd_config
+	sed -i 's|.*PasswordAuthentication.*|PasswordAuthentication yes|g' /etc/ssh/sshd_config
 	systemctl restart sshd
     if [ $? -eq 0 ]; then
         echo -e "\033[34;1m openssh重启成功 \033[0m"
