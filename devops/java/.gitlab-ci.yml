@@ -1,0 +1,42 @@
+image: maven:latest
+
+# 自定义参数
+variables:
+  registry: "local"
+
+# 本次构建的阶段：build package
+stages:
+- build
+- deploy
+
+
+# 打包
+build:
+  stage: build
+  tags:
+  - maven
+  script:
+  - echo "=============== 开始打包任务  ==============="
+  - mvn clean install -DskipTests
+  artifacts:
+    expire_in: 1 week
+    paths:
+    - target/*.war
+# 定义job什么时候将会被创建
+  only:
+    - test # 测试环境 dev test ... testN
+
+deploy:
+  stage: deploy
+  tags:
+  - maven
+  script:
+  - echo "=============== 开始打包镜像  ==============="
+  - curl http://192.168.1.83/other/devops/raw/master/resources/org/foo/push_1of2.sh | sh -s ${registry}
+  artifacts:
+    expire_in: 1 week
+    paths:
+    - BUILD_TAG
+# 定义job什么时候将会被创建
+  only:
+    - test # 测试环境 dev test ... testN
