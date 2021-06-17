@@ -1,6 +1,0 @@
-targets:
-  webhook:
-    url: https://oapi.dingtalk.com/robot/send?access_token=0d2f29c6e1cb0657dd67f16b0ee9a3d5ccd32100d050233dc6abfae8a46712af
-    secret: SECa4a34a6d371f0d7ca3d2a3681d4eb3c2a473527a266baced303cd852d9726b70
-#template: /usr/local/prometheus/alertmanager/prometheus-webhook-dingtalk/templates/dingtalk.tmpl
-template: /usr/local/prometheus/alertmanager/prometheus-webhook-dingtalk/templates/dingtalk_custom_tempalte.tmpl
