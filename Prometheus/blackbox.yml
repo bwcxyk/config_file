@@ -1,0 +1,17 @@
+modules:
+  http_2xx:  # http 检测模块  Blockbox-Exporter 中所有的探针均是以 Module 的信息进行配置
+    prober: http
+    timeout: 60s
+    http:
+      #valid_http_versions: ["HTTP/1.1", "HTTP/2"]   
+      #valid_status_codes: [200]  # 这里最好作一个返回状态码，在grafana作图时，有明示
+      method: GET
+      preferred_ip_protocol: "ip4"
+  http_post_2xx: # http post 监测模块
+    prober: http
+    timeout: 60s
+    http:
+      #valid_http_versions: ["HTTP/1.1", "HTTP/2"]
+      #valid_status_codes: [200]  # 这里最好作一个返回状态码，在grafana作图时，有明示
+      method: POST
+      preferred_ip_protocol: "ip4"
