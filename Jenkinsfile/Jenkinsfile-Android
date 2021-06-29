@@ -1,0 +1,89 @@
+#!groovy
+
+@Library('jenkinslibrary@master') _
+
+//func from shareibrary
+def build = new org.devops.build()
+def tools = new org.devops.tools()
+def android = new org.devops.android()
+
+def runOpts
+//env
+String buildType = "${env.buildType}"
+String buildShell = "${env.buildShell}"
+
+//pipeline
+pipeline{
+    agent { node { label "build"}}
+
+    // 指定运行的选项（可选）
+    options {
+        // 删除隐式checkout scm语句
+        skipDefaultCheckout()
+        //保持构建的最大个数
+        buildDiscarder(logRotator(numToKeepStr: '5'))
+        // 设置Pipeline运行的超时时间
+        //timeout(time: 1, unit: 'HOURS')
+        // 日志会有时间
+        //timestamps()
+        // 禁止并行
+        //disableConcurrentBuilds()
+    }
+
+    // 参数化变量
+    parameters {
+    // 构建类型
+    string(name:'buildType', defaultValue: 'gradle', description: '构建类型')
+    // 构建命令
+    string(name:'buildShell', defaultValue: 'clean build -q', description: '构建命令')
+    }
+    
+    stages{
+
+       stage("checkout") {
+            steps {
+                script{
+                    tools.PrintMes("检出代码","green")
+                    checkout scm
+                }
+            }
+        }
+
+        stage("Build"){
+            steps{
+                script{
+                    tools.PrintMes("执行打包","green")
+                    build.Build(buildType,buildShell)
+                }
+            }
+        }
+
+        // jiagu
+        stage("jiagu"){
+            when {
+                branch 'master'
+            }
+            steps{
+                script{
+                    tools.PrintMes("加固","green")
+                sh """
+                export IS_PUBLISH=prod
+                sh jiagu.sh
+                echo '加固完成'
+                """
+                }
+            }
+        }
+        
+        // 发布
+        stage("Deploy"){
+            steps{
+                script{
+                    tools.PrintMes("发布应用---Pgyer","green")
+                    serviceDir = "app/build/outputs/apk/release/app-release.apk"
+                    android.UploadPgyer("${serviceDir}")
+                }
+            }
+        }
+    }
+}
