@@ -80,8 +80,12 @@ pipeline{
             steps{
                 script{
                     tools.PrintMes("发布应用---Pgyer","green")
-                    serviceDir = "app/build/outputs/apk/release/app-release.apk"
-                    android.UploadPgyer("${serviceDir}")
+                    // android.UploadPgyer("${serviceName}.apk")
+                    // 需要安装Pipeline Utility Steps插件使用readJSON
+                    result = readJSON text: """${android.UploadPgyer("${serviceName}.apk")}"""
+                    
+                    imageUrl = result["data"]["appQRCodeURL"]
+                    currentBuild.description = "<img src=${imageUrl}>"
                 }
             }
         }
