@@ -4,11 +4,20 @@
 
 //func from shareibrary
 def build = new org.devops.build()
+def deploy = new org.devops.deploy()
 def tools = new org.devops.tools()
-
+def gitlab = new org.devops.gitlab()
+def toemail = new org.devops.toemail()
+def sonar = new org.devops.sonarqube()
+def sonarapi = new org.devops.sonarapi()
+def nexus = new org.devops.nexus()
+def artifactory = new org.devops.artifactory() 
+def k8s = new org.devops.kubernetes()
 
 def runOpts
 //env
+String srcUrl = "${env.srcUrl}"
+String branchName = "${env.branchName}"
 String buildType = "${env.buildType}"
 String buildShell = "${env.buildShell}"
 String registry = "${env.registry}"
@@ -34,25 +43,33 @@ pipeline{
     
     // 参数化变量
     parameters {
+    // git代码路径【参数值对外隐藏】
+    string(name:'srcUrl', defaultValue: 'http://192.168.1.83/tms/tms.git', description: 'git代码路径')
     // 构建类型
     string(name:'buildType', defaultValue: 'mvn', description: '构建类型')
     // 构建命令
     string(name:'buildShell', defaultValue: 'clean install -DskipTests', description: '构建命令')
+    // git分支
+    gitParameter branchFilter: 'origin/(.*)', defaultValue: 'dev', name: 'branchName', type: 'PT_BRANCH', description: '构建分支'
     // 镜像仓库
     choice choices: ['local', 'aliyun', 'huaweicloud'], description: '镜像仓库', name: 'registry'
     }
 
     stages{
 
-       stage("checkout") {
-            steps {
+       stage("GetCode"){
+            steps{
                 script{
-                    tools.PrintMes("检出代码","green")
-                    checkout scm
+                    println("${branchName}")
+                    tools.PrintMes("获取代码","green")
+                    checkout([$class: 'GitSCM', branches: [[name: "${branchName}"]], 
+                                      doGenerateSubmoduleConfigurations: false, 
+                                      extensions: [], 
+                                      submoduleCfg: [], 
+                                      userRemoteConfigs: [[credentialsId: 'gitlab-admin-user', url: "${srcUrl}"]]])
                 }
             }
         }
-
         stage("Build"){
             steps{
                 script{
@@ -60,28 +77,27 @@ pipeline{
                     build.Build(buildType,buildShell)
                 }
             }
-        }
-        // 构建镜像
-        stage("BuildImages"){
-            steps{
-                script{
-                    tools.PrintMes("构建上传镜像","green")
+       }
+           // 构建镜像
+           stage("BuildImages"){
+                steps{
+                    script{
+                        tools.PrintMes("构建上传镜像","green")
                 sh """
-                curl http://192.168.1.83/other/devops/raw/master/resources/org/foo/push_1of2.sh | sh -s ${registry}
+                curl http://192.168.1.83/tms/script/raw/master/push_1of3.sh | sh -s ${registry}
                 """
                 }
             }
         }
-        // gittag
-            stage("gittag"){
+           // gittag
+           stage("gittag"){
                 when {
-                    branch 'master'
+                    branch 'dev'
                 }
                 steps{
                     script{
                         tools.PrintMes("gittag","green")
                 sh """
-                curl http://192.168.1.83/other/devops/-/raw/master/resources/org/foo/git_tag_del.sh | sh
                 echo ${BUILD_TIMESTAMP}
                 git tag -a -m 'Release version ${BUILD_TIMESTAMP}' ${BUILD_TIMESTAMP}
                 git push origin --tags
