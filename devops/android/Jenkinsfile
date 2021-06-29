@@ -80,6 +80,9 @@ pipeline{
             steps{
                 script{
                     tools.PrintMes("发布应用---Pgyer","green")
+                    serviceName = "${JOB_NAME.split("_")[0]}"
+                    sh "mv app/build/outputs/apk/debug/app-debug.apk ./${serviceName}.apk"
+
                     // android.UploadPgyer("${serviceName}.apk")
                     // 需要安装Pipeline Utility Steps插件使用readJSON
                     result = readJSON text: """${android.UploadPgyer("${serviceName}.apk")}"""
