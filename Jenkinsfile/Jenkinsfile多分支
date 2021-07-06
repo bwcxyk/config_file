@@ -4,29 +4,31 @@
 
 //func from shareibrary
 def build = new org.devops.build()
-def deploy = new org.devops.deploy()
 def tools = new org.devops.tools()
 def gitlab = new org.devops.gitlab()
-def toemail = new org.devops.toemail()
-def sonar = new org.devops.sonarqube()
-def sonarapi = new org.devops.sonarapi()
-def nexus = new org.devops.nexus()
-def artifactory = new org.devops.artifactory() 
-def k8s = new org.devops.kubernetes()
 
 def runOpts
 //env
-String srcUrl = "${env.srcUrl}"
-String branchName = "${env.branchName}"
 String buildType = "${env.buildType}"
 String buildShell = "${env.buildShell}"
 String registry = "${env.registry}"
 
+if ("${runOpts}" == "GitlabPush"){
+    branchName = branch - "refs/heads/"
+    
+    currentBuild.description = "Trigger by ${userName} ${branch}"
+    gitlab.ChangeCommitStatus(projectId,commitSha,"running")
+    env.runOpts = "GitlabPush"
+
+    
+} else {
+   println("-----手动触发构建-----");
+}
 
 //pipeline
 pipeline{
     agent { node { label "build"}}
-
+    
     // 指定运行的选项（可选）
     options {
         // 删除隐式checkout scm语句
@@ -43,8 +45,6 @@ pipeline{
     
     // 参数化变量
     parameters {
-    // git代码路径【参数值对外隐藏】
-    string(name:'srcUrl', defaultValue: 'http://192.168.1.83/tms/tms.git', description: 'git代码路径')
     // 构建类型
     string(name:'buildType', defaultValue: 'mvn', description: '构建类型')
     // 构建命令
@@ -52,6 +52,25 @@ pipeline{
     // 镜像仓库
     choice choices: ['local', 'aliyun', 'huaweicloud'], description: '镜像仓库', name: 'registry'
     }
+
+triggers{
+    GenericTrigger(
+        genericVariables: [
+          [key: 'ref', value: '$.ref'],
+          [key: 'projectId', value: '$.project.id'],
+          [key: 'commitSha', value: '$.checkout_sha']
+         ],
+        causeString: 'Triggered on $ref',
+        token: 'tms-pvbMXBbnxz',
+        printContributedVariables: true,
+        printPostContent: true,
+        silentResponse: false,
+        regexpFilterText: '$ref',
+        regexpFilterExpression: '^refs/heads/master'
+        //regexpFilterExpression: '^refs/heads/(master|devops)'
+        //regexpFilterExpression: '^refs/heads/(features/sprint\\d*|master)$'
+    )
+}
 
     stages{
 
@@ -63,7 +82,7 @@ pipeline{
                 }
             }
         }
-
+        
         stage("Build"){
             steps{
                 script{
@@ -72,19 +91,21 @@ pipeline{
                 }
             }
         }
-           // 构建镜像
-           stage("BuildImages"){
-                steps{
-                    script{
-                        tools.PrintMes("构建上传镜像","green")
+
+        // 构建镜像
+        stage("BuildImages"){
+            steps{
+                script{
+                    tools.PrintMes("构建上传镜像","green")
                 sh """
-                curl http://192.168.1.83/tms/script/raw/master/push_1of3.sh | sh -s ${registry}
+                curl http://192.168.1.83/other/devops/raw/master/resources/org/foo/push_1of2.sh | sh -s ${registry}
                 """
                 }
             }
         }
-           // gittag
-           stage("gittag"){
+        
+        // gittag
+            stage("gittag"){
                 when {
                     branch 'master'
                 }
@@ -92,6 +113,7 @@ pipeline{
                     script{
                         tools.PrintMes("gittag","green")
                 sh """
+                curl http://192.168.1.83/other/devops/-/raw/master/resources/org/foo/git_tag_del.sh | sh
                 echo ${BUILD_TIMESTAMP}
                 git tag -a -m 'Release version ${BUILD_TIMESTAMP}' ${BUILD_TIMESTAMP}
                 git push origin --tags
@@ -101,5 +123,41 @@ pipeline{
             }
         }
     }
-    
+
+    post {
+        always{
+            script{
+                println("always")
+            }
+        }
+        
+        success{
+            script{
+                println("success")
+                if ("${runOpts}" == "GitlabPush"){
+                    gitlab.ChangeCommitStatus(projectId,commitSha,"success")
+                }            
+            }
+        
+        }
+        failure{
+            script{
+                println("failure")
+                if ("${runOpts}" == "GitlabPush"){
+                    gitlab.ChangeCommitStatus(projectId,commitSha,"failed")
+                }
+            }
+        }
+        
+        aborted{
+            script{
+                println("aborted")
+                if ("${runOpts}" == "GitlabPush"){
+                    gitlab.ChangeCommitStatus(projectId,commitSha,"canceled")
+                }
+            }
+        
+        }
+    }
+
 }
