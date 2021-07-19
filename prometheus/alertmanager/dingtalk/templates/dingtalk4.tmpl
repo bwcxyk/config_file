@@ -56,7 +56,7 @@
 {{ define "default.title" }}{{ template "__subject" . }}{{ end }}
 {{ define "default.content" }}#### \[{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}\] **[{{ index .GroupLabels "alertname" }}]({{ template "__alertmanagerURL" . }})**
 {{ if gt (len .Alerts.Firing) 0 -}}
- 
+
 ![警报 图标](https://ss0.bdstatic.com/70cFuHSh_Q1YnxGkpoWK1HF6hhy/it/u=3626076420,1196179712&fm=15&gp=0.jpg)
 
 **====侦测到故障====**
