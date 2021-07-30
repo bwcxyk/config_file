@@ -53,24 +53,6 @@ pipeline{
     choice choices: ['local', 'aliyun', 'huaweicloud'], description: '镜像仓库', name: 'registry'
     }
 
-triggers{
-    GenericTrigger(
-        genericVariables: [
-          [key: 'ref', value: '$.ref'],
-          [key: 'projectId', value: '$.project.id'],
-          [key: 'commitSha', value: '$.checkout_sha']
-         ],
-        causeString: 'Triggered on $ref',
-        token: 'tms-pvbMXBbnxz',
-        printContributedVariables: true,
-        printPostContent: true,
-        silentResponse: false,
-        regexpFilterText: '$ref',
-        regexpFilterExpression: '^refs/heads/master'
-        //regexpFilterExpression: '^refs/heads/(master|devops)'
-        //regexpFilterExpression: '^refs/heads/(features/sprint\\d*|master)$'
-    )
-}
 
     stages{
 
@@ -97,6 +79,8 @@ triggers{
             steps{
                 script{
                     tools.PrintMes("构建上传镜像","green")
+                DATE=new Date().format('yyyyMMddHHmmss')
+                currentBuild.description = "docker tag is ${DATE}"
                 sh """
                 curl http://192.168.1.83/other/devops/raw/master/resources/org/foo/push_1of2.sh | sh -s ${registry}
                 """
