@@ -73,6 +73,8 @@ pipeline{
                 steps{
                     script{
                         tools.PrintMes("构建上传镜像","green")
+                DATE=new Date().format('yyyyMMddHHmmss')
+                currentBuild.description = "docker tag is ${DATE}"
                 sh """
                 curl http://192.168.1.83/other/devops/raw/master/resources/org/foo/push_1of2.sh | sh -s ${registry}
                 """
