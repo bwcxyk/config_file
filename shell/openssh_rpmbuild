@@ -1,7 +1,4 @@
 #!/usr/bin/env bash
-# @Date   :2021/1/1 15:13
-# @Author :ives
-# @Email  :381347268@qq.com
 # @File   :rpmbuild_openssh.sh
 # @Desc   :制作openssh rpm软件包，通过tar包build
 
