@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# author yao
+# author YaoKun
 # date 2021年3月1日13:14:36
 
 . /etc/init.d/functions
