@@ -34,14 +34,14 @@ function download_package() {
             echo "x11-ssh-askpass-1.2.4.1.tar.gz下载失败...请检查网络环境是否正常"
             exit 2
         else
-            tar -xf openssh-8.4p1.tar.gz && tar -xf x11-ssh-askpass-1.2.4.1.tar.gz
+            tar -xf openssh-${openssh_version}p1.tar.gz && tar -xf x11-ssh-askpass-1.2.4.1.tar.gz
         fi
     fi
 }
 
 # 修改配置文件和build
 function config_and_build() {
-    cp openssh-8.4p1/contrib/redhat/openssh.spec /root/rpmbuild/SPECS/
+    cp openssh-${openssh_version}p1/contrib/redhat/openssh.spec /root/rpmbuild/SPECS/
     sed -i -e "s/%define no_x11_askpass 0/%define no_x11_askpass 1/g" /root/rpmbuild/SPECS/openssh.spec
     sed -i -e "s/%define no_gnome_askpass 0/%define no_gnome_askpass 1/g" /root/rpmbuild/SPECS/openssh.spec
     sed -i 's/BuildRequires: openssl-devel < 1.1/#&/' /root/rpmbuild/SPECS/openssh.spec
