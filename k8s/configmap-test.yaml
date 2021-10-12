@@ -1,0 +1,44 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  creationTimestamp: "2021-03-09T01:21:04Z"
+  name: test-config
+  namespace: default
+data:
+  application-dev.yml: |
+    spring:
+       datasource:
+          driver-class-name: oracle.jdbc.driver.OracleDriver
+          url: jdbc:oracle:thin:@192.168.1.181:1521:orcl
+          username: wcpt_user
+          password: wcpt_user
+          type: com.alibaba.druid.pool.DruidDataSource
+          initial-size: 1
+          min-idle: 3
+          max-active: 20
+          max-wait: 60000
+          time-between-eviction-runs-millis: 60000
+          min-evictable-idle-time-millis: 30000
+
+       data:
+          mongodb:
+            database: tms
+            host: 192.168.1.123
+            port: 27017
+            username: testmongo
+            password: testmongo
+
+    zookeeper:
+       address: 192.168.1.123:2181
+
+    jedis :
+        pool :
+            host : 192.168.1.123
+            port : 6379
+            pass : redis
+            timeout : 6000
+            database : 0
+            config :
+              maxTotal: 100
+              maxIdle: 10
+              maxWaitMillis : 100000
