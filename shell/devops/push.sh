@@ -33,19 +33,19 @@ if [ "$1" = "dev" ];
     # login
     REGISTRY_URL="192.168.0.2"
     NAME_SPACE="yuanfu-tms"
-    docker login --username=admin ${REGISTRY_URL} --password=Yuanfu1211
+    docker login --username=admin ${REGISTRY_URL} --password=admin
     push_tag
     elif [ "$1" = "test" ];
     then
     REGISTRY_URL="192.168.0.2"
     NAME_SPACE="yuanfu-tms"
-    docker login --username=admin ${REGISTRY_URL} --password=Yuanfu1211
+    docker login --username=admin ${REGISTRY_URL} --password=admin
     push_tag
     elif [ "$1" = "prod" ];
     then
     REGISTRY_URL="registry.cn-shanghai.aliyuncs.com"
     NAME_SPACE="yuanfu-tms"
-    docker login --username=远孚集团 ${REGISTRY_URL} --password=wzygymtijus9
+    docker login --username=远孚集团 ${REGISTRY_URL} --password=admin
     push_tag
     else
     echo '测试环境参考命令:push.sh dev 1.0'
