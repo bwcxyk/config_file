@@ -1,67 +1,19 @@
+kind: ConfigMap
 apiVersion: v1
+metadata:
+  creationTimestamp: "2021-03-09T02:09:42Z"
+  name: test-config2
+  namespace: default
 data:
   tms.properties: |
-    #TEST
-    #db.host.url=jdbc:oracle:thin:@192.168.1.67:1521:orcl
-    #db.host.user=tms_user
-    #db.host.pwd=tms_user1
-
     db.host.url=jdbc:oracle:thin:@192.168.1.181:1521:orcl
     db.host.user=tms_user_1
     db.host.pwd=tms_uat_pwd
 
-    # location
-    rmi.location.url = http://172.19.179.239/location/
-    #
-    file.upload.save.path=/data/file/tmpfile/upload/
-    # 导出存储目录
-    file.export.tmpfile=/data/export
-    # 导出下载url
-    file.export.pre.path=https://tms.yuanfusc.com/
-    # 导出下载拼接
-    file.export.tmpfile.key=export
-    # fdfs服务器
-    file.fdfs.pre.path=http://file.yuanfusc.com/
-    #
-    tms.fileUrl=http://file.yuanfusc.com/
-
     contractUrl.prefix = http://api:8080/yfapi/
-
-    #birt-print#
-    #Dev
-    birt.print.url=127.0.0.1:8081
-    #crm-sso
-    crm.token.key=123
-
-    #mybatis
-    #\u6162\u67e5\u8be2(1s),<=0\u65f6\u4e0d\u76d1\u63a7
-    mybatis.query.slow.millseconds=0
-    #\u8d85\u5927\u7ed3\u679c\u96c6(1000),<=0\u65f6\u4e0d\u68c0\u6d4b
-    mybatis.query.max.result=0
-    #环境变量，默认dev开发环境
-    tms.env=dev
-    zk.lock.address=192.168.1.66:2181
 
     contract.bank.auth.method=contract.bank.auth
     contract.person.auth.method=contract.person.auth
     contract.app_key=6019D5A6FAB24E13AD2AE917D9A54EE7
     person.auth=/api/contract/person/auth
     bank.auth=/api/contract/bank/auth
-kind: ConfigMap
-metadata:
-  creationTimestamp: "2021-03-09T02:09:42Z"
-  managedFields:
-  - apiVersion: v1
-    fieldsType: FieldsV1
-    fieldsV1:
-      f:data:
-        .: {}
-        f:tms.properties: {}
-    manager: kubectl-create
-    operation: Update
-    time: "2021-03-09T02:09:42Z"
-  name: test-config2
-  namespace: default
-  resourceVersion: "74944"
-  selfLink: /api/v1/namespaces/default/configmaps/test-config2
-  uid: 9d8b3db2-486f-46ee-987b-e7ed087b7a7a
