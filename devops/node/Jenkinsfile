@@ -4,17 +4,8 @@
 
 //func from shareibrary
 def build = new org.devops.build()
-def deploy = new org.devops.deploy()
 def tools = new org.devops.tools()
-def gitlab = new org.devops.gitlab()
-def toemail = new org.devops.toemail()
-def sonar = new org.devops.sonarqube()
-def sonarapi = new org.devops.sonarapi()
-def nexus = new org.devops.nexus()
-def artifactory = new org.devops.artifactory() 
-def k8s = new org.devops.kubernetes()
 
-def runOpts
 //env
 String buildType = "${env.buildType}"
 String buildShell = "${env.buildShell}"
@@ -47,6 +38,8 @@ pipeline{
     string(name:'buildShell', defaultValue: 'install && npm run build', description: '构建命令')
     // 镜像仓库
     choice choices: ['local', 'aliyun', 'huaweicloud'], description: '镜像仓库', name: 'registry'
+    // 清理工作空间
+    choice choices: ['true', 'false'], description: '清理工作空间', name: 'CleanWorkspace'
     }
 
     stages{
@@ -94,6 +87,19 @@ pipeline{
                 git push origin --tags
                 echo 'git标签添加成功'
                 """
+                }
+            }
+        }
+           // clean
+           stage("clean"){
+                when {
+                    environment name: 'CleanWorkspace',
+                    value: 'true'
+                }
+                steps{
+                    script{
+                        tools.PrintMes("clean","green")
+                sh 'rm -rf ${WORKSPACE}'
                 }
             }
         }
