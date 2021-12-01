@@ -2,29 +2,21 @@
 
 @Library('jenkinslibrary@master') _
 
-//func from shareibrary
+// func from shareibrary
 def build = new org.devops.build()
-def deploy = new org.devops.deploy()
 def tools = new org.devops.tools()
 def gitlab = new org.devops.gitlab()
-def toemail = new org.devops.toemail()
-def sonar = new org.devops.sonarqube()
-def sonarapi = new org.devops.sonarapi()
-def nexus = new org.devops.nexus()
-def artifactory = new org.devops.artifactory() 
-def k8s = new org.devops.kubernetes()
 
-def runOpts
+// def runOpts
 //env
 String buildType = "${env.buildType}"
 String buildShell = "${env.buildShell}"
 String registry = "${env.registry}"
 
-
 //pipeline
 pipeline{
-    agent { node { label "build"}}
-
+    agent { node { label "java"}}
+    
     // 指定运行的选项（可选）
     options {
         // 删除隐式checkout scm语句
@@ -59,7 +51,7 @@ pipeline{
                 }
             }
         }
-
+        
         stage("Build"){
             steps{
                 script{
@@ -68,11 +60,12 @@ pipeline{
                 }
             }
         }
-           // 构建镜像
-           stage("BuildImages"){
-                steps{
-                    script{
-                        tools.PrintMes("构建上传镜像","green")
+
+        // 构建镜像
+        stage("BuildImages"){
+            steps{
+                script{
+                    tools.PrintMes("构建上传镜像","green")
                 DATE=new Date().format('yyyyMMddHHmmss')
                 currentBuild.description = "docker tag is ${DATE}"
                 sh """
@@ -81,14 +74,15 @@ pipeline{
                 }
             }
         }
-           // gittag
-           stage("gittag"){
-                when {
-                    branch 'master'
-                }
-                steps{
-                    script{
-                        tools.PrintMes("gittag","green")
+        
+        // gittag
+        stage("gittag"){
+            when {
+                branch 'master'
+            }
+            steps{
+                script{
+                    tools.PrintMes("gittag","green")
                 sh """
                 curl http://192.168.1.83/other/devops/-/raw/master/resources/org/foo/git_tag_del.sh | sh
                 echo ${BUILD_TIMESTAMP}
@@ -100,5 +94,5 @@ pipeline{
             }
         }
     }
-    
+
 }

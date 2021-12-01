@@ -14,7 +14,7 @@ String registry = "${env.registry}"
 
 //pipeline
 pipeline{
-    agent { node { label "build"}}
+    agent { node { label "nodejs"}}
 
     // 指定运行的选项（可选）
     options {
@@ -39,7 +39,7 @@ pipeline{
     // 镜像仓库
     choice choices: ['local', 'aliyun', 'huaweicloud'], description: '镜像仓库', name: 'registry'
     // 清理工作空间
-    choice choices: ['true', 'false'], description: '清理工作空间', name: 'CleanWorkspace'
+    choice choices: ['false', 'true'], description: '清理工作空间', name: 'CleanWorkspace'
     }
 
     stages{
@@ -99,10 +99,11 @@ pipeline{
                 steps{
                     script{
                         tools.PrintMes("clean","green")
-                sh 'rm -rf ${WORKSPACE}'
+                sh 'rm -rf ${WORKSPACE}/node_modules'
                 }
             }
         }
+
     }
     
 }

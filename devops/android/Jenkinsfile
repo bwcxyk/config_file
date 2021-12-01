@@ -7,7 +7,7 @@ def build = new org.devops.build()
 def tools = new org.devops.tools()
 def android = new org.devops.android()
 
-def runOpts
+//def runOpts
 //env
 String buildType = "${env.buildType}"
 String buildShell = "${env.buildShell}"
