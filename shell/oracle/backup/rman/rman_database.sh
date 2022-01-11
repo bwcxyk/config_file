@@ -1,5 +1,6 @@
 #!/bin/bash
 # rman_database_full_level0
+# sh rman_database.sh > /dev/null 2>&1
 
 #set -ex
 
