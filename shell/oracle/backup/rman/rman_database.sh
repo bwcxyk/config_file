@@ -44,7 +44,7 @@ allocate channel ch1 type disk maxpiecesize 2g rate 100m format '${BACKUP_PATH}/
 allocate channel ch2 type disk maxpiecesize 2g rate 100m format '${BACKUP_PATH}/database_full_%T_%s_%U.bak';
 
 # 备份全库及控制文件、服务器参数文件
-backup incremental level=${BACKUP_LEVEL} as compressed backupset tag=db_inc_${BACKUP_LEVEL} database filesperset=3;
+backup as compressed backupset incremental level=${BACKUP_LEVEL} tag=db_inc_${BACKUP_LEVEL} database filesperset=3;
 
 # 核对所有备份集
 crosscheck backup;
