@@ -12,6 +12,8 @@ BACKUP_PATH=/data/backup
 BACKUP_DATE=`date +%Y%m%d`
 # 取当前星期几，0为周日，星期一到星期六分别对应1-6
 WEEK_DAILY=`date +%w`
+# 恢复窗口期
+RECOVERY_WINDOW=7
 
 echo "今天是星期${WEEK_DAILY}"
 
@@ -47,7 +49,7 @@ allocate channel ch2 type disk maxpiecesize 2g rate 100m format '${BACKUP_PATH}/
 backup as compressed backupset incremental level=${BACKUP_LEVEL} tag=db_inc_${BACKUP_LEVEL} database filesperset=3;
 
 # 删除历史过期备份
-delete obsolete recovery window of 15 days;
+delete noprompt obsolete recovery window of ${RECOVERY_WINDOW} days;
 
 # 核对所有备份集
 crosscheck backup;
