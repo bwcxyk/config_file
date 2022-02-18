@@ -11,12 +11,14 @@ bakdir="/data/ossfs/tms/oracle/${date2}"
 
 # 进行tar归档备份文件
 function pack_to_tar() {
-    if [ ! -d "${dir}/tmsbak_${date}_01.dmp" ];then
-        echo "No such directory"
-        exit 1
+    if ls ${dir}/tmsbak_"${date}"*.dmp 1> /dev/null 2>&1;then
+        echo "文件存在，开始归档"
+        cd "${dir}" || exit
+        tar zcf tmsbak_"${date}".tar.gz tmsbak_"${date}"*.dmp
+        echo "归档完成"
     else
-        tar zcf tmsbak_${date}.tar.gz tmsbak_${date}*.dmp
-        echo "tar归档完成"
+        echo "No such directory"
+        exit 1 
     fi
 }
 
@@ -24,7 +26,7 @@ function pack_to_tar() {
 function mkdir_to_oss() {
     if [ ! -d "${bakdir}" ];then
         echo "No such directory"
-        mkdir ${bakdir}
+        mkdir "${bakdir}"
     else
         echo "Directory exists"
     fi
@@ -32,7 +34,7 @@ function mkdir_to_oss() {
 
 # 传输到oss存储
 function trans_to_oss {
-    cp tmsbak_${date}.tar.gz ${bakdir}/
+    cp tmsbak_"${date}".tar.gz "${bakdir}"/
     if [ $? -eq 0 ]; then
         echo "====move ok!===="
     else
@@ -44,7 +46,7 @@ function trans_to_oss {
 # 清理文件
 function delete_files() {
     echo "delete files"
-    rm -f tmsbak_${date}*
+    rm -f tmsbak_"${date}"*
 }
 
 function main() {
