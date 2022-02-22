@@ -9,6 +9,9 @@ month2=$(date -d "${month1}01 last month" +%Y%m)
 
 echo "保留以下月份tag:${month},${month1},${month2}"
 
+# 获取git tag
+git fetch --all --tags
+
 #git show-ref --tag | grep -v ${month} | grep -v ${month1} | grep -v ${month2} | awk '{print ":" $2}' > tmp.txt
 
 git show-ref --tag | \
