@@ -77,8 +77,13 @@ pipeline{
         
         // gittag
         stage("gittag"){
+            // when {
+            //     branch 'master'
+            // }
             when {
-                branch 'master'
+                 anyOf { 
+                     branch 'master'; branch 'main'
+                     }
             }
             steps{
                 script{
