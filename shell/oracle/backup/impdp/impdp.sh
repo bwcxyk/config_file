@@ -20,6 +20,7 @@ function download() {
         echo -e "\033[33;1m文件存放路径：${bakdir} \033[0m" && ls ${bakdir}/
     else
         echo -e "\033[33;1m下载失败，请根据报错信息进行解决，再重试 \033[0m"
+        exit
     fi
 }
 
