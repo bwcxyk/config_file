@@ -38,6 +38,7 @@ function download_package() {
 function bakup() {
 	cp /etc/pam.d/{sshd,sshd.bak}
 	cp /etc/ssh/{sshd_config,sshd_config.bak}
+	cp /usr/bin/{ssh-copy-id,ssh-copy-id.bak}
 }
 
 # 升级
@@ -54,6 +55,7 @@ function update() {
 function reduction_and_restart() {
 	\mv /etc/pam.d/sshd.bak /etc/pam.d/sshd
 	\mv /etc/ssh/sshd_config.bak /etc/ssh/sshd_config
+	\mv /usr/bin/{ssh-copy-id.bak,ssh-copy-id}
 	chmod 600 /etc/ssh/*
 	sed -i "s|.*PermitRootLogin.*|PermitRootLogin yes|g" /etc/ssh/sshd_config
 	sed -i 's|.*PasswordAuthentication.*|PasswordAuthentication yes|g' /etc/ssh/sshd_config
