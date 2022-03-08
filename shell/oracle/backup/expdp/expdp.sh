@@ -12,10 +12,10 @@ expdp ${user}/${passwd} \
 directory=${directory} \
 schemas=${user} \
 exclude=statistics \
-exclude=table:\"LIKE\ \'SYSTEM_LOG%\'\" \
-exclude=table:\"LIKE\ \'API_REQUEST_LOG%\'\" \
-exclude=table:\"LIKE\ \'API_GEO_LOG%\'\" \
-exclude=table:\"LIKE\ \'WCPTOPEN_API_LOG%\'\" \
+exclude=table:\"like\ \'SYSTEM_LOG%\'\" \
+exclude=table:\"like\ \'API_REQUEST_LOG%\'\" \
+exclude=table:\"like\ \'API_GEO_LOG%\'\" \
+exclude=table:\"like\ \'WCPTOPEN_API_LOG%\'\" \
 exclude=table:\"like\ \'API%\'\" \
 filesize=2048M \
 parallel=4 \
