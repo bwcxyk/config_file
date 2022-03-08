@@ -11,11 +11,12 @@ directory="tmsbak"
 expdp ${user}/${passwd} \
 directory=${directory} \
 schemas=${user} \
-EXCLUDE=statistics \
-EXCLUDE=TABLE:\"LIKE\ \'SYSTEM_LOG%\'\" \
-EXCLUDE=TABLE:\"LIKE\ \'API_REQUEST_LOG%\'\" \
-EXCLUDE=TABLE:\"LIKE\ \'API_GEO_LOG%\'\" \
-EXCLUDE=TABLE:\"LIKE\ \'WCPTOPEN_API_LOG%\'\" \
+exclude=statistics \
+exclude=table:\"LIKE\ \'SYSTEM_LOG%\'\" \
+exclude=table:\"LIKE\ \'API_REQUEST_LOG%\'\" \
+exclude=table:\"LIKE\ \'API_GEO_LOG%\'\" \
+exclude=table:\"LIKE\ \'WCPTOPEN_API_LOG%\'\" \
+exclude=table:\"like\ \'API%\'\" \
 filesize=2048M \
 parallel=4 \
 dumpfile=tmsbak_${date}_%U.dmp \
