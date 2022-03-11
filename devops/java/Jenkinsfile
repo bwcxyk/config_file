@@ -5,7 +5,7 @@
 // func from shareibrary
 def build = new org.devops.build()
 def tools = new org.devops.tools()
-def gitlab = new org.devops.gitlab()
+def checkout = new org.devops.checkout()
 
 // def runOpts
 //env
@@ -47,7 +47,8 @@ pipeline{
             steps {
                 script{
                     tools.PrintMes("检出代码","green")
-                    checkout scm
+                    // checkout scm
+                    checkout.CheckOut()
                 }
             }
         }
@@ -66,8 +67,8 @@ pipeline{
             steps{
                 script{
                     tools.PrintMes("构建上传镜像","green")
-                DATE=new Date().format('yyyyMMddHHmmss')
-                currentBuild.description = "docker tag is ${DATE}"
+                // DATE=new Date().format('yyyyMMddHHmmss')
+                // currentBuild.description = "docker tag is ${DATE}"
                 sh """
                 curl http://192.168.1.83/other/devops/raw/master/resources/org/foo/push_1of2.sh | sh -s ${registry}
                 """
@@ -77,9 +78,6 @@ pipeline{
         
         // gittag
         stage("gittag"){
-            // when {
-            //     branch 'master'
-            // }
             when {
                  anyOf { 
                      branch 'master'; branch 'main'
@@ -89,11 +87,11 @@ pipeline{
                 script{
                     tools.PrintMes("gittag","green")
                 sh """
-                curl http://192.168.1.83/other/devops/-/raw/master/resources/org/foo/git_tag_del.sh | sh
-                echo ${BUILD_TIMESTAMP}
+                #echo ${BUILD_TIMESTAMP}
                 git tag -a -m 'Release version ${BUILD_TIMESTAMP}' ${BUILD_TIMESTAMP}
                 git push origin --tags
-                echo 'git标签添加成功'
+                #echo 'git标签添加成功'
+                curl http://192.168.1.83/other/devops/-/raw/master/resources/org/foo/git_tag_del.sh | sh
                 """
                 }
             }
