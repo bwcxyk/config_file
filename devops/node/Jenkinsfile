@@ -57,7 +57,8 @@ pipeline{
                 script{
                     tools.PrintMes("执行打包","green")
                     sh '''
-                    sed -i "s|^axios.defaults.baseURL.*$|axios.defaults.baseURL = '###baseURL###'|g" $WORKSPACE/src/utils/http.js
+                    # sed -i "s|^const API_URL.*$|const API_URL = 'API_URL'|g" ${WORKSPACE}/src/main.js
+                    sed -i "s|^axios.defaults.baseURL.*$|axios.defaults.baseURL = '###baseURL###'|g" ${WORKSPACE}/src/utils/http.js
                     '''
                     build.Build(buildType,buildShell)
                 }
