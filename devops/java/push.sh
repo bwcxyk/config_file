@@ -13,6 +13,11 @@ if [ "$1" != "" ];
     REGISTRY_URL="$1"
 fi
 
+if [ "$2" != "" ];
+    then
+    TAG_VERSION="$2"
+fi
+
 # build_push_tag
 set -e
 # push tms
