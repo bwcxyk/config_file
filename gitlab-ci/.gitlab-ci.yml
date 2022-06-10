@@ -1,0 +1,31 @@
+variables:
+    MAVEN_OPTS: "-Dmaven.repo.local=/usr/share/maven/repository"
+    MAVEN_CLI_OPTS: "--batch-mode --settings /usr/share/maven/configmap/settings.xml"
+
+# cache:
+#   paths:
+#     - .m2/repository
+
+stages:
+- build
+- deploy
+
+compile:
+  stage: build
+  image: maven:3.6.2
+  script:
+  - echo "=============== 开始打包任务  ==============="
+  - mvn $MAVEN_CLI_OPTS install
+  artifacts:
+    name: "jars"
+    expire_in: 60 mins
+    paths:
+      - target/*.jar
+    when: on_success
+
+deploy:
+  stage: deploy
+  image: maven:3.6.2
+  script:
+  - echo "=============== 开始推送制品  ==============="
+  - mvn $MAVEN_CLI_OPTS deploy
