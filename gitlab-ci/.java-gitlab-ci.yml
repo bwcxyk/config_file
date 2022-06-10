@@ -9,6 +9,9 @@ variables:
 .job_template: &job_configuration  # Hidden yaml configuration that defines an anchor named 'job_configuration'
   image: maven:3.6.2
 
+.some-script-before: &some-script-before
+  - echo "=============== $CI_JOB_STAGE  ==============="
+
 stages:
 - build
 - deploy
@@ -18,6 +21,7 @@ compile:
   # image: maven:3.6.2
   stage: build
   script:
+  - *some-script-before
   - echo "=============== 开始打包任务  ==============="
   - mvn $MAVEN_CLI_OPTS install
   artifacts:
@@ -32,5 +36,6 @@ deploy:
   # image: maven:3.6.2
   stage: deploy
   script:
+  - *some-script-before
   - echo "=============== 开始推送制品  ==============="
   - mvn $MAVEN_CLI_OPTS deploy
