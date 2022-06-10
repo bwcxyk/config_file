@@ -1,0 +1,38 @@
+image: maven:3.6.2
+
+variables:
+  registry: "local"
+  imageTag: "CI_COMMIT_SHA"
+
+# 本次构建的阶段：build package
+stages:
+- build
+- build-image
+
+
+# 打包
+build:
+  stage: build
+  tags:
+  - maven
+  script:
+  - echo "=============== 开始打包任务  ==============="
+  - mvn clean install -DskipTests
+  artifacts:
+    expire_in: 1 week
+    paths:
+    - target/*.war
+# 定义job什么时候将会被创建
+  only:
+    - test1 # 测试环境 test1 test2 ... testN
+
+build-image:
+  stage: build-image
+  tags:
+  - maven
+  script:
+  - echo "=============== 开始打包镜像  ==============="
+  - curl http://192.168.1.83/other/devops/raw/master/resources/org/foo/push_1of2.sh | sh -s ${registry} ${imageTag}
+# 定义job什么时候将会被创建
+  only:
+    - test1 # 测试环境 test1 test2 ... testN
