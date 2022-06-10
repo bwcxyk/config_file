@@ -19,9 +19,11 @@ build:
   - echo "=============== 开始打包任务  ==============="
   - mvn clean install -DskipTests
   artifacts:
-    expire_in: 1 week
+    name: "wars"
+    expire_in: 60 mins
     paths:
     - target/*.war
+    when: on_success
 # 定义job什么时候将会被创建
   only:
     - test1 # 测试环境 test1 test2 ... testN
