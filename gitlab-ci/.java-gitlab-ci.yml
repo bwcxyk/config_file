@@ -6,13 +6,17 @@ variables:
 #   paths:
 #     - .m2/repository
 
+.job_template: &job_configuration  # Hidden yaml configuration that defines an anchor named 'job_configuration'
+  image: maven:3.6.2
+
 stages:
 - build
 - deploy
 
 compile:
+  <<: *job_configuration           # Merge the contents of the 'job_configuration' alias
+  # image: maven:3.6.2
   stage: build
-  image: maven:3.6.2
   script:
   - echo "=============== 开始打包任务  ==============="
   - mvn $MAVEN_CLI_OPTS install
@@ -24,8 +28,9 @@ compile:
     when: on_success
 
 deploy:
+  <<: *job_configuration           # Merge the contents of the 'job_configuration' alias
+  # image: maven:3.6.2
   stage: deploy
-  image: maven:3.6.2
   script:
   - echo "=============== 开始推送制品  ==============="
   - mvn $MAVEN_CLI_OPTS deploy
