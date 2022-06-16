@@ -71,3 +71,11 @@ groups:
         annotations:
           summary: "{{$labels.mountpoint}} 磁盘分区使用率过高！"
           description: "{{$labels.mountpoint }} 磁盘分区使用大于80%(目前使用:{{$value}}%)"
+
+    - name: node_usage_record_rules
+      interval: 1m
+      rules:
+      - record: cpu:usage:rate1m
+        expr: (1 - avg(rate(node_cpu_seconds_total{mode="idle"}[1m])) by (instance,vendor,account,group,name)) * 100
+      - record: mem:usage:rate1m
+        expr: (1 - node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) * 100
