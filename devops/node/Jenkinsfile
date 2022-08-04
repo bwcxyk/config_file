@@ -2,21 +2,64 @@
 
 @Library('jenkinslibrary@master') _
 
+def label = "slave-${UUID.randomUUID().toString()}"
+
+podYaml = """
+kind: Pod
+apiVersion: v1
+metadata:
+  name: jnlp
+  namespace: jenkins
+spec:
+  securityContext:
+    runAsUser: 0
+  containers:
+  - name: jnlp
+    image: jenkins/inbound-agent:latest-jdk11
+    imagePullPolicy: IfNotPresent
+  - name: node
+    image: yaokun/node:12.13.1-alpine
+    imagePullPolicy: IfNotPresent
+    command:
+    - cat
+    tty: true
+  - name: docker
+    image: yaokun/docker:latest
+    imagePullPolicy: IfNotPresent
+    volumeMounts:
+    - mountPath: /var/run/docker.sock
+      name: dockersock
+    command:
+    - cat
+    tty: true
+  volumes:
+    - name: dockersock
+      hostPath:
+        path: /var/run/docker.sock
+"""
+
+
 // func from shareibrary
 def build = new org.devops.build()
 def tools = new org.devops.tools()
 def checkout = new org.devops.checkout()
 
 // env
-String buildType = "${env.buildType}"
-String buildShell = "${env.buildShell}"
-String registry = "${env.registry}"
-
+def buildType = env.buildType
+def buildShell = env.buildShell
+def registry = env.registry
 
 // pipeline
 pipeline{
-    agent { node { label "nodejs"}}
+    agent{
+        kubernetes{
+            inheritFrom 'jenkins-slave'
+            defaultContainer 'maven'
+            yaml podYaml
+        }
+    }
 
+    
     // 指定运行的选项（可选）
     options {
         // 删除隐式checkout scm语句
@@ -45,22 +88,23 @@ pipeline{
 
        stage("checkout") {
             steps {
-                script{
-                    tools.PrintMes("检出代码","green")
-                    checkout scm
+                container('node'){
+                    script{
+                        tools.PrintMes("检出代码","green")
+                        // checkout scm
+                        checkout.CheckOut()
+                    }
                 }
             }
         }
-
+        
         stage("Build"){
             steps{
-                script{
-                    tools.PrintMes("执行打包","green")
-                    sh '''
-                    # sed -i "s|^const API_URL.*$|const API_URL = 'API_URL'|g" ${WORKSPACE}/src/main.js
-                    sed -i "s|^axios.defaults.baseURL.*$|axios.defaults.baseURL = '###baseURL###'|g" ${WORKSPACE}/src/utils/http.js
-                    '''
-                    build.Build(buildType,buildShell)
+                container('node'){
+                    script{
+                        tools.PrintMes("执行打包","green")
+                        build.Build(buildType,buildShell)
+                    }
                 }
             }
         }
@@ -68,36 +112,19 @@ pipeline{
         // 构建镜像
         stage("BuildImages"){
             steps{
-                script{
-                    tools.PrintMes("构建上传镜像","green")
-                imageTag = tools.createVersion()
-                currentBuild.description = "docker tag is ${imageTag}"
-                sh """
-                curl http://192.168.1.83/other/devops/raw/master/resources/org/foo/push_1of2.sh | sh -s ${registry} ${imageTag}
-                """
+                container('docker'){
+                    script{
+                        tools.PrintMes("构建上传镜像","green")
+                        imageTag = tools.createVersion()
+                        currentBuild.description = "docker tag is ${imageTag}"
+                        sh """
+                        curl http://192.168.1.83/other/devops/raw/master/resources/org/foo/push_1of2.sh | sh -s ${registry} ${imageTag}
+                        """
+                    }
                 }
             }
         }
         
-        // gittag
-        stage("gittag"){
-            when {
-                 anyOf { 
-                     branch 'master'; branch 'main'
-                     }
-            }
-            steps{
-                script{
-                    tools.PrintMes("gittag","green")
-                sh """
-                git tag -a -m 'Release version ${BUILD_TIMESTAMP}' ${BUILD_TIMESTAMP}
-                git push origin --tags
-                echo 'git标签添加成功'
-                curl http://192.168.1.83/other/devops/-/raw/master/resources/org/foo/git_tag_del.sh | sh
-                """
-                }
-            }
-        }
     }
 
 }

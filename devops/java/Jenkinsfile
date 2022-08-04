@@ -2,9 +2,50 @@
 
 @Library('jenkinslibrary@master') _
 
+podYaml = """
+kind: Pod
+apiVersion: v1
+metadata:
+  name: jnlp
+  namespace: jenkins
+spec:
+  securityContext:
+    runAsUser: 0
+  containers:
+  - name: jnlp
+    image: jenkins/inbound-agent:latest-jdk11
+    imagePullPolicy: IfNotPresent
+  - name: maven
+    image: yaokun/maven:3.6.2-jdk8
+    imagePullPolicy: IfNotPresent
+    volumeMounts:
+    - mountPath: /usr/local/maven/repository
+      name: jenkins-maven
+    command:
+    - cat
+    tty: true
+  - name: docker
+    image: yaokun/docker:latest
+    imagePullPolicy: IfNotPresent
+    volumeMounts:
+    - mountPath: /var/run/docker.sock
+      name: dockersock
+    command:
+    - cat
+    tty: true
+  volumes:
+    - name: dockersock
+      hostPath:
+        path: /var/run/docker.sock
+    - name: jenkins-maven
+      persistentVolumeClaim:
+        claimName: jenkins-maven
+"""
+
 // func from shareibrary
 def build = new org.devops.build()
 def tools = new org.devops.tools()
+def gitlab = new org.devops.gitlab()
 def checkout = new org.devops.checkout()
 
 // env
@@ -14,20 +55,27 @@ def registry = env.registry
 
 // pipeline
 pipeline{
-    agent { node { label "java"}}
+    agent{
+        kubernetes{
+            inheritFrom 'jenkins-slave'
+            defaultContainer 'maven'
+            yaml podYaml
+        }
+    }
+
     
     // 指定运行的选项（可选）
     options {
         // 删除隐式checkout scm语句
         skipDefaultCheckout()
-        //保持构建的最大个数
+        // 保持构建的最大个数
         buildDiscarder(logRotator(numToKeepStr: '5'))
         // 设置Pipeline运行的超时时间
-        //timeout(time: 1, unit: 'HOURS')
+        // timeout(time: 1, unit: 'HOURS')
         // 日志会有时间
-        //timestamps()
+        // timestamps()
         // 禁止并行
-        //disableConcurrentBuilds()
+        // disableConcurrentBuilds()
     }
     
     // 参数化变量
@@ -35,7 +83,7 @@ pipeline{
     // 构建类型
     string(name:'buildType', defaultValue: 'mvn', description: '构建类型')
     // 构建命令
-    string(name:'buildShell', defaultValue: 'clean install -DskipTests', description: '构建命令')
+    string(name:'buildShell', defaultValue: '-s ${MAVEN_SETTINGS} clean install -DskipTests', description: '构建命令')
     // 镜像仓库
     choice choices: ['local', 'aliyun', 'huaweicloud'], description: '镜像仓库', name: 'registry'
     }
@@ -44,19 +92,26 @@ pipeline{
 
        stage("checkout") {
             steps {
-                script{
-                    tools.PrintMes("检出代码","green")
-                    // checkout scm
-                    checkout.CheckOut()
+                container('maven'){
+                    script{
+                        tools.PrintMes("检出代码","green")
+                        // checkout scm
+                        checkout.CheckOut()
+                    }
                 }
             }
         }
-        
+
         stage("Build"){
             steps{
-                script{
-                    tools.PrintMes("执行打包","green")
-                    build.Build(buildType,buildShell)
+                container('maven'){
+                    script{
+                        configFileProvider(
+                            [configFile(fileId: '09240bae-5178-4abb-8df0-67f5264b50c1', variable: 'MAVEN_SETTINGS')]) {
+                            tools.PrintMes("执行打包","green")
+                            build.Build(buildType,buildShell)
+                        }
+                    }
                 }
             }
         }
@@ -64,36 +119,19 @@ pipeline{
         // 构建镜像
         stage("BuildImages"){
             steps{
-                script{
-                    tools.PrintMes("构建上传镜像","green")
-                imageTag = tools.createVersion()
-                currentBuild.description = "docker tag is ${imageTag}"
-                sh """
-                curl http://192.168.1.83/other/devops/raw/master/resources/org/foo/push_1of2.sh | sh -s ${registry} ${imageTag}
-                """
+                container('docker'){
+                    script{
+                        tools.PrintMes("构建上传镜像","green")
+                        imageTag = tools.createVersion()
+                        currentBuild.description = "docker tag is ${imageTag}"
+                        sh """
+                        curl http://192.168.1.83/other/devops/raw/master/resources/org/foo/push_1of2.sh | sh -s ${registry} ${imageTag}
+                        """
+                    }
                 }
             }
         }
         
-        // gittag
-        stage("gittag"){
-            when {
-                 anyOf { 
-                     branch 'master'; branch 'main'
-                     }
-            }
-            steps{
-                script{
-                    tools.PrintMes("gittag","green")
-                sh """
-                git tag -a -m 'Release version ${BUILD_TIMESTAMP}' ${BUILD_TIMESTAMP}
-                git push origin --tags
-                echo 'git标签添加成功'
-                curl http://192.168.1.83/other/devops/-/raw/master/resources/org/foo/git_tag_del.sh | sh
-                """
-                }
-            }
-        }
     }
 
 }
