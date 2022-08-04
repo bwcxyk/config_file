@@ -2,8 +2,6 @@
 
 @Library('jenkinslibrary@master') _
 
-def label = "slave-${UUID.randomUUID().toString()}"
-
 podYaml = """
 kind: Pod
 apiVersion: v1
@@ -103,6 +101,10 @@ pipeline{
                 container('node'){
                     script{
                         tools.PrintMes("执行打包","green")
+                        sh """
+                        npm config set registry http://192.168.1.200:8081/nexus/repository/npm-group
+                        cnpm config set registry http://192.168.1.200:8081/nexus/repository/npm-group/
+                        """
                         build.Build(buildType,buildShell)
                     }
                 }
