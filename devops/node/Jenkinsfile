@@ -9,7 +9,7 @@ def checkout = new org.devops.checkout()
 
 // 读取资源文件
 def DockerPush = libraryResource 'com/yuanfu/pipeline/scripts/push_1of2.sh'
-def podYaml = libraryResource 'com/yuanfu/pipeline/podyaml/MavenPod.yaml'
+def podYaml = libraryResource 'com/yuanfu/pipeline/podyaml/NodejsPod.yaml'
 
 // env
 def buildType = env.buildType
