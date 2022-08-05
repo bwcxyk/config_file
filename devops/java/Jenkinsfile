@@ -57,7 +57,7 @@ def registry = env.registry
 pipeline{
     agent{
         kubernetes{
-            inheritFrom 'jenkins-slave'
+            label "jenkins-slave-${UUID.randomUUID().toString()}"
             defaultContainer 'maven'
             yaml podYaml
         }
@@ -107,7 +107,7 @@ pipeline{
                 container('maven'){
                     script{
                         configFileProvider(
-                            [configFile(fileId: '09240bae-5178-4abb-8df0-67f5264b50c1', variable: 'MAVEN_SETTINGS')]) {
+                            [configFile(fileId: 'yuanfu-maven-setting', variable: 'MAVEN_SETTINGS')]) {
                             tools.PrintMes("执行打包","green")
                             build.Build(buildType,buildShell)
                         }
