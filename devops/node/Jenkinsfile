@@ -17,7 +17,7 @@ pipeline{
     agent{
         kubernetes{
             label "jenkins-slave-${UUID.randomUUID().toString()}"
-            defaultContainer 'maven'
+            defaultContainer 'node'
             yamlFile 'MavenPod.yaml'
             showRawYaml 'flase'
         }
