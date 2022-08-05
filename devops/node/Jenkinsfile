@@ -7,6 +7,10 @@ def build = new org.devops.build()
 def tools = new org.devops.tools()
 def checkout = new org.devops.checkout()
 
+// 读取资源文件
+def DockerPush = libraryResource 'com/yuanfu/pipeline/scripts/push_1of2.sh'
+def podYaml = libraryResource 'com/yuanfu/pipeline/podyaml/MavenPod.yaml'
+
 // env
 def buildType = env.buildType
 def buildShell = env.buildShell
@@ -17,8 +21,8 @@ pipeline{
     agent{
         kubernetes{
             label "jenkins-slave-${UUID.randomUUID().toString()}"
-            defaultContainer 'node'
-            yamlFile 'MavenPod.yaml'
+            defaultContainer 'maven'
+            yaml podYaml
             showRawYaml 'flase'
         }
     }
@@ -67,10 +71,11 @@ pipeline{
                 container('node'){
                     script{
                         tools.PrintMes("执行打包","green")
-                        sh """
+                        sh '''
+                        sed -i "s|^axios.defaults.baseURL.*$|axios.defaults.baseURL = '###baseURL###'|g" $WORKSPACE/src/utils/http.js
                         npm config set registry http://192.168.1.200:8081/nexus/repository/npm-group
                         cnpm config set registry http://192.168.1.200:8081/nexus/repository/npm-group/
-                        """
+                        '''
                         build.Build(buildType,buildShell)
                     }
                 }
@@ -82,7 +87,7 @@ pipeline{
             steps{
                 container('docker'){
                     script{
-                        tools.PrintMes("构建上传镜像","green")
+                       tools.PrintMes("构建上传镜像","green")
                         imageTag = tools.createVersion()
                         currentBuild.description = "docker tag is ${imageTag}"
                         writeFile file: 'push_1of2.sh', text: DockerPush
