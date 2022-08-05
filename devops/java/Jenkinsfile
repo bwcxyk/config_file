@@ -7,7 +7,9 @@ def build = new org.devops.build()
 def tools = new org.devops.tools()
 def gitlab = new org.devops.gitlab()
 def checkout = new org.devops.checkout()
+// 读取资源文件
 def DockerPush = libraryResource 'com/yuanfu/pipeline/scripts/push_1of2.sh'
+def podYaml = libraryResource 'com/yuanfu/pipeline/podyaml/MavenPod.yaml'
 
 // env
 def buildType = env.buildType
@@ -21,8 +23,8 @@ pipeline{
             label "jenkins-slave-${UUID.randomUUID().toString()}"
             // inheritFrom 'jenkins-slave-${UUID.randomUUID().toString()}'
             defaultContainer 'maven'
-            yamlFile 'MavenPod.yaml'
-            // yaml podYaml
+            // yamlFile 'MavenPod.yaml'
+            yaml podYaml
             showRawYaml 'flase'
         }
     }
