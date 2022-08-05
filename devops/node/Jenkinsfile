@@ -2,41 +2,6 @@
 
 @Library('jenkinslibrary@master') _
 
-podYaml = """
-kind: Pod
-apiVersion: v1
-metadata:
-  name: jnlp
-  namespace: jenkins
-spec:
-  securityContext:
-    runAsUser: 0
-  containers:
-  - name: jnlp
-    image: jenkins/inbound-agent:latest-jdk11
-    imagePullPolicy: IfNotPresent
-  - name: node
-    image: yaokun/node:12.13.1-alpine
-    imagePullPolicy: IfNotPresent
-    command:
-    - cat
-    tty: true
-  - name: docker
-    image: yaokun/docker:latest
-    imagePullPolicy: IfNotPresent
-    volumeMounts:
-    - mountPath: /var/run/docker.sock
-      name: dockersock
-    command:
-    - cat
-    tty: true
-  volumes:
-    - name: dockersock
-      hostPath:
-        path: /var/run/docker.sock
-"""
-
-
 // func from shareibrary
 def build = new org.devops.build()
 def tools = new org.devops.tools()
@@ -51,9 +16,10 @@ def registry = env.registry
 pipeline{
     agent{
         kubernetes{
-            inheritFrom 'jenkins-slave'
+            label "jenkins-slave-${UUID.randomUUID().toString()}"
             defaultContainer 'maven'
-            yaml podYaml
+            yamlFile 'MavenPod.yaml'
+            showRawYaml 'flase'
         }
     }
 
@@ -119,8 +85,9 @@ pipeline{
                         tools.PrintMes("构建上传镜像","green")
                         imageTag = tools.createVersion()
                         currentBuild.description = "docker tag is ${imageTag}"
+                        writeFile file: 'push_1of2.sh', text: DockerPush
                         sh """
-                        curl http://192.168.1.83/other/devops/raw/master/resources/org/foo/push_1of2.sh | sh -s ${registry} ${imageTag}
+                        sh push_1of2.sh ${registry} ${imageTag}
                         """
                     }
                 }
