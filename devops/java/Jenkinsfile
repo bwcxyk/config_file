@@ -8,7 +8,6 @@ def tools = new org.devops.tools()
 def gitlab = new org.devops.gitlab()
 def checkout = new org.devops.checkout()
 // 读取资源文件
-def DockerPush = libraryResource 'com/yuanfu/pipeline/scripts/push_1of2.sh'
 def podYaml = libraryResource 'com/yuanfu/pipeline/podyaml/MavenPod.yaml'
 
 // env
@@ -46,10 +45,8 @@ pipeline{
     
     // 参数化变量
     parameters {
-    // 构建类型
-    string(name:'buildType', defaultValue: 'mvn', description: '构建类型')
     // 构建命令
-    string(name:'buildShell', defaultValue: '-s ${MAVEN_SETTINGS} clean install -DskipTests', description: '构建命令')
+    string(name:'buildShell', defaultValue: 'mvn clean install -DskipTests', description: '构建命令')
     // 镜像仓库
     choice choices: ['local', 'aliyun', 'huaweicloud'], description: '镜像仓库', name: 'registry'
     }
@@ -68,16 +65,30 @@ pipeline{
             }
         }
 
+        // stage("Build"){
+        //     steps{
+        //         container('maven'){
+        //             script{
+        //                 configFileProvider(
+        //                     [configFile(fileId: 'yuanfu-maven-setting', variable: 'MAVEN_SETTINGS')]) {
+        //                     tools.PrintMes("执行打包","green")
+        //                     build.Build(buildType,buildShell)
+        //                 }
+        //             }
+        //         }
+        //     }
+        // }
+
         stage("Build"){
             steps{
-                container('maven'){
-                    script{
-                        configFileProvider(
-                            [configFile(fileId: 'yuanfu-maven-setting', variable: 'MAVEN_SETTINGS')]) {
-                            tools.PrintMes("执行打包","green")
-                            build.Build(buildType,buildShell)
-                        }
-                    }
+                script{
+                    tools.PrintMes("执行打包","green")
+                    settingsContent = libraryResource 'config/settings.xml'
+                    writeFile file: 'settings.xml', text: settingsContent
+                }
+                container('maven') {
+                    // build.Build(buildType,buildShell)
+                    sh "${env.buildShell} -s settings.xml"
                 }
             }
         }
@@ -90,7 +101,8 @@ pipeline{
                         tools.PrintMes("构建上传镜像","green")
                         imageTag = tools.createVersion()
                         currentBuild.description = "docker tag is ${imageTag}"
-                        writeFile file: 'push_1of2.sh', text: DockerPush
+                        PushScriptContent = libraryResource 'com/yuanfu/pipeline/scripts/push_1of2.sh'
+                        writeFile file: 'push_1of2.sh', text: PushScriptContent
                         sh """
                         sh push_1of2.sh ${registry} ${imageTag}
                         """
