@@ -1,0 +1,96 @@
+#!groovy
+
+@Library('jenkinslibrary@master') _
+
+// func from shareibrary
+def build = new org.devops.build()
+def tools = new org.devops.tools()
+def gitlab = new org.devops.gitlab()
+def checkout = new org.devops.checkout()
+// 读取资源文件
+def podYaml = libraryResource 'com/yuanfu/pipeline/podyaml/GoPod.yaml'
+
+// env
+def buildShell = env.buildShell
+def registry = env.registry
+
+// pipeline
+pipeline{
+    agent{
+        kubernetes{
+            label "jenkins-slave-${UUID.randomUUID().toString()}"
+            defaultContainer 'go'
+            yaml podYaml
+            showRawYaml 'flase'
+        }
+    }
+
+    
+    // 指定运行的选项（可选）
+    options {
+        // 删除隐式checkout scm语句
+        skipDefaultCheckout()
+        // 保持构建的最大个数
+        buildDiscarder(logRotator(numToKeepStr: '5'))
+        // 设置Pipeline运行的超时时间
+        // timeout(time: 1, unit: 'HOURS')
+        // 日志会有时间
+        // timestamps()
+        // 禁止并行
+        // disableConcurrentBuilds()
+    }
+    
+    // 参数化变量
+    parameters {
+    // 构建命令
+    string(name:'buildShell', defaultValue: 'go build', description: '构建命令')
+    // 镜像仓库
+    choice choices: ['local', 'aliyun', 'huaweicloud'], description: '镜像仓库', name: 'registry'
+    }
+
+    stages{
+
+       stage("checkout") {
+            steps {
+                container('go'){
+                    script{
+                        tools.PrintMes("检出代码","green")
+                        // checkout scm
+                        checkout.CheckOut()
+                    }
+                }
+            }
+        }
+
+        stage("Build"){
+            steps{
+                container('go') {
+                    script{
+					    tools.PrintMes("执行打包","green")
+                        sh "${env.buildShell}"
+					}
+                }
+            }
+        }
+
+        // 构建镜像
+        stage("BuildImages"){
+            steps{
+                container('docker'){
+                    script{
+                        tools.PrintMes("构建上传镜像","green")
+                        imageTag = tools.createVersion()
+                        currentBuild.description = "docker tag is ${imageTag}"
+                        PushScriptContent = libraryResource 'com/yuanfu/pipeline/scripts/push_1of2.sh'
+                        writeFile file: 'push_1of2.sh', text: PushScriptContent
+                        sh """
+                        sh push_1of2.sh ${registry} ${imageTag}
+                        """
+                    }
+                }
+            }
+        }
+        
+    }
+
+}
