@@ -66,7 +66,7 @@ pipeline{
             steps{
                 container('go') {
                     script{
-					    tools.PrintMes("执行打包","green")
+                        tools.PrintMes("执行打包","green")
                         sh "${env.buildShell}"
 					}
                 }
