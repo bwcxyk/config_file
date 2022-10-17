@@ -92,7 +92,7 @@ pipeline{
                 }
                 container('maven') {
                     // build.Build(buildType,buildShell)
-                    sh "mvn clean deploy -Dmaven.test.skip=true -s settings.xml"
+                    sh "mvn clean deploy -DskipTests -s settings.xml"
                 }
             }
         }
