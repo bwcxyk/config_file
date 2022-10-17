@@ -11,7 +11,6 @@ def checkout = new org.devops.checkout()
 def podYaml = libraryResource 'com/yuanfu/pipeline/podyaml/MavenPod.yaml'
 
 // env
-def buildType = env.buildType
 def buildShell = env.buildShell
 def registry = env.registry
 
@@ -68,7 +67,7 @@ pipeline{
         stage("Build"){
             steps{
                 script{
-                    tools.PrintMes("执行打包","green")
+                    tools.PrintMes("编译","green")
                     settingsContent = libraryResource 'config/settings.xml'
                     writeFile file: 'settings.xml', text: settingsContent
                 }
@@ -78,8 +77,13 @@ pipeline{
                 }
             }
         }
-        
+
         stage("deploy"){
+           when {
+                 anyOf { 
+                     branch 'master'; branch 'main'
+                     }
+            }
             steps{
                 script{
                     tools.PrintMes("推送制品","green")
@@ -88,7 +92,7 @@ pipeline{
                 }
                 container('maven') {
                     // build.Build(buildType,buildShell)
-                    sh "mvn clean deploy -DskipTests -s settings.xml"
+                    sh "mvn clean deploy -Dmaven.test.skip=true -s settings.xml"
                 }
             }
         }
