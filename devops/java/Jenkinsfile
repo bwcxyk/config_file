@@ -79,11 +79,11 @@ pipeline{
         }
 
         stage("deploy"){
-           when {
-                 anyOf { 
-                     branch 'master'; branch 'main'
-                     }
-            }
+//            when {
+//                  anyOf { 
+//                      branch 'master'; branch 'main'
+//                      }
+//             }
             steps{
                 script{
                     tools.PrintMes("推送制品","green")
