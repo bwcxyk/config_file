@@ -65,20 +65,6 @@ pipeline{
             }
         }
 
-        // stage("Build"){
-        //     steps{
-        //         container('maven'){
-        //             script{
-        //                 configFileProvider(
-        //                     [configFile(fileId: 'yuanfu-maven-setting', variable: 'MAVEN_SETTINGS')]) {
-        //                     tools.PrintMes("执行打包","green")
-        //                     build.Build(buildType,buildShell)
-        //                 }
-        //             }
-        //         }
-        //     }
-        // }
-
         stage("Build"){
             steps{
                 script{
@@ -89,6 +75,20 @@ pipeline{
                 container('maven') {
                     // build.Build(buildType,buildShell)
                     sh "${env.buildShell} -s settings.xml"
+                }
+            }
+        }
+        
+        stage("deploy"){
+            steps{
+                script{
+                    tools.PrintMes("推送制品","green")
+                    settingsContent = libraryResource 'config/settings.xml'
+                    writeFile file: 'settings.xml', text: settingsContent
+                }
+                container('maven') {
+                    // build.Build(buildType,buildShell)
+                    sh "mvn clean deploy -DskipTests -s settings.xml"
                 }
             }
         }
