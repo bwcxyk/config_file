@@ -17,6 +17,6 @@ tmpdir="/data/tmpfile"
 #     find "${old_file}" -mindepth 1 -type d -mtime +15 | xargs rm -rf
 # done
 
-find "${tmpdir}" -mindepth 2 -type d -mtime +15 -print0 | xargs -0 rm -rf
+find "${tmpdir}" -mindepth 2 -type d -mtime +15 -print0 | xargs -0 rm -rfv
 
 echo "删除结束"
