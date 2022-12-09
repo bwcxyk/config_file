@@ -1,0 +1,158 @@
+#!groovy
+
+@Library('jenkinslibrary@master') _
+
+// func from shareibrary
+def build = new org.devops.build()
+def tools = new org.devops.tools()
+def gitlab = new org.devops.gitlab()
+def checkout = new org.devops.checkout()
+// 读取资源文件
+def podYaml = libraryResource 'com/yuanfu/pipeline/podyaml/MavenPod.yaml'
+
+// env
+def buildShell = env.buildShell
+def registry = env.registry
+def deploy = env.deploy
+
+// pipeline
+pipeline{
+    agent{
+        kubernetes{
+            label "jenkins-slave-${UUID.randomUUID().toString()}"
+            // inheritFrom 'jenkins-slave-${UUID.randomUUID().toString()}'
+            defaultContainer 'maven'
+            // yamlFile 'MavenPod.yaml'
+            yaml podYaml
+            showRawYaml 'flase'
+        }
+    }
+
+    environment {
+        registryUrl = '192.168.0.2'
+        nameSpace = 'tms'
+        appName = 'demo'
+        imageTag = tools.createVersion()
+    }
+
+    // 指定运行的选项（可选）
+    options {
+        // 删除隐式checkout scm语句
+        skipDefaultCheckout()
+        // 保持构建的最大个数
+        buildDiscarder(logRotator(numToKeepStr: '5'))
+        // 设置Pipeline运行的超时时间
+        // timeout(time: 1, unit: 'HOURS')
+        // 日志会有时间
+        // timestamps()
+        // 禁止并行
+        // disableConcurrentBuilds()
+    }
+    
+    // 参数化变量
+    parameters {
+    // 构建命令
+    string(name:'buildShell', defaultValue: 'mvn clean install -DskipTests', description: '构建命令')
+    // 镜像仓库
+    choice choices: ['local', 'aliyun', 'huaweicloud'], description: '镜像仓库', name: 'registry'
+    // 部署
+    booleanParam description: '是否部署', name: 'deploy'
+    // 发布环境
+    choice choices: ['dev', 'release', 'prod'], description: '发布环境', name: 'ENV'
+    }
+
+    stages{
+
+       stage("checkout") {
+            steps {
+                container('maven'){
+                    script{
+                        tools.PrintMes("检出代码","green")
+                        // checkout scm
+                        checkout.CheckOut()
+                    }
+                }
+            }
+        }
+
+        stage("Build"){
+            steps{
+                script{
+                    tools.PrintMes("执行打包","green")
+                    settingsContent = libraryResource 'config/settings.xml'
+                    writeFile file: 'settings.xml', text: settingsContent
+                }
+                container('maven') {
+                    // build.Build(buildType,buildShell)
+                    sh "${env.buildShell} -s settings.xml"
+                }
+            }
+        }
+
+        // 构建镜像
+        stage("BuildImages"){
+            steps{
+                container('docker'){
+                    script{
+                        tools.PrintMes("构建上传镜像","green")
+                        currentBuild.description = "docker tag is ${imageTag}"
+                        PushScriptContent = libraryResource 'com/yuanfu/pipeline/scripts/push_1of2.sh'
+                        writeFile file: 'push_1of2.sh', text: PushScriptContent
+                        sh """
+                        sh push_1of2.sh ${registry} ${imageTag}
+                        """
+                    }
+                }
+            }
+        }
+
+        stage('Build and Push Image'){
+            steps{
+                container('docker'){
+                    script{
+                        tools.PrintMes("构建镜像","green")
+                        currentBuild.description = "docker tag is ${imageTag}"
+                        withCredentials([usernamePassword(credentialsId: 'docker-register', passwordVariable: 'dockerPassword', usernameVariable: 'dockerUser')]) {
+                            sh '''
+                            echo "${dockerPassword}" | docker login --username=${dockerUser} ${registryUrl} --password-stdin
+                            docker build -t ${registryUrl}/${nameSpace}/${appName}:${imageTag} .
+                            docker push ${registryUrl}/${nameSpace}/${appName}:${imageTag}
+                            '''
+                        }
+                    }
+                }
+            }
+        }
+        
+        stage('Deploy to K8s'){
+            steps{
+                container('kubectl'){
+                    script{
+                        tools.PrintMes("部署到k8s","green")
+                        if ('true' == "${deploy}") {
+                            sh '''
+                            cd deploy/base
+                            kustomize edit set image ${registryUrl}/${nameSpace}/${appName}:${imageTag}
+                            '''
+                            echo "部署到 Kubernetes"
+                            if ('prod' == "${ENV}") {
+                                sh '''
+                                # kustomize build deploy/overlays/prod | kubectl apply -f -
+                                kubectl applt -k deploy/overlays/prod
+                                '''
+                            } else {
+                                sh '''
+                                # kustomize build deploy/overlays/dev | kubectl apply -f -
+                                kubectl applt -k deploy/overlays/dev
+                                '''
+                            }
+                        } else {
+                            echo "跳过Deploy to K8s"
+                        }
+                    }
+                }
+            }
+        }
+
+    }
+}
