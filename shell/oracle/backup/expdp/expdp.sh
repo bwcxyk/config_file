@@ -6,18 +6,19 @@ source /home/oracle/.bash_profile
 date=`date +'%Y%m%d%H%M'`
 user="user"
 passwd="pass"
-directory="tmsbak"
+directory="DATA_PUMP_DIR"
 
 expdp ${user}/${passwd} \
 directory=${directory} \
 schemas=${user} \
-exclude=statistics \
-exclude=table:\"like\ \'SYSTEM_LOG%\'\" \
-exclude=table:\"like\ \'API_REQUEST_LOG%\'\" \
-exclude=table:\"like\ \'API_GEO_LOG%\'\" \
-exclude=table:\"like\ \'WCPTOPEN_API_LOG%\'\" \
-exclude=table:\"like\ \'API%\'\" \
+EXCLUDE=statistics \
+exclude=table:\"IN\(\'TMS_ORDER_SHIP_B0923\',\'OMS_TO_TMS_LOG\',\'TMS_REPORT_INCOME_COST2\',\'TMS_TRANS_TRANSPORT_PD_221226\'\)\" \
+EXCLUDE=TABLE:\"LIKE\ \'SYSTEM_LOG%\'\" \
+EXCLUDE=TABLE:\"LIKE\ \'API_REQUEST_LOG%\'\" \
+EXCLUDE=TABLE:\"LIKE\ \'API_GEO_LOG%\'\" \
+EXCLUDE=TABLE:\"LIKE\ \'WCPTOPEN_API_LOG%\'\" \
 filesize=2048M \
 parallel=4 \
-dumpfile=tmsbak_${date}_%U.dmp \
+dumpfile=tms_${date}_%U.dmp \
 compression=all
+

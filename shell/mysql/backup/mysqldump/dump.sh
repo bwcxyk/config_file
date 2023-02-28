@@ -2,6 +2,9 @@
 ## auth dump
 set -e
 #set -x
-databak_dir="/databasebak/yfbidata"
+
+db="yfbi"
+backup_dir="/data/backup/db_backup/${db}"
+
 date=$(date +%Y%m%d%H%M)
-mysqldump yfbi | gzip > ${databak_dir}/yfbi_bak_${date}.sql.gz
+mysqldump ${db} | gzip > ${backup_dir}/${db}_${date}.sql.gz
