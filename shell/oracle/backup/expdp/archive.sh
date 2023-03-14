@@ -27,6 +27,7 @@ function pack_to_tar() {
 function mkdir_to_oss() {
     if [ ! -d "${archive_dir}" ];then
         echo "No such directory"
+        echo "创建文件夹"
         mkdir "${archive_dir}"
     else
         echo "Directory exists"
