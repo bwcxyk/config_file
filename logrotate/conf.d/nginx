@@ -1,0 +1,16 @@
+/usr/local/nginx/logs/*.log {
+        daily                                   # 日志归档周期为1天
+        notifempty                              # 日志文件不为空时才执行归档
+        missingok                               # 如果日志丢失，不报错继续滚动下一个日志
+        dateext                                 # 归档文件名添加时间字符串
+        dateyesterday                           # 归档文件名时间字符串以归档操作的前一天为时间戳
+        compress                                # 归档文件执行压缩
+        delaycompress                           # 在归档执行的下个周期再进行压缩
+        create 644 nginx nginx                  # 以指定的权限创建全新的日志文件
+        postrotate                              # 归档执行后执行脚本
+            [ -e /usr/local/nginx/logs/nginx.pid ] && kill -USR1 `cat /usr/local/nginx/logs/nginx.pid`
+        endscript
+}
+        sharedscripts                           # 启用脚本共享模式
+        rotate 30                                # 归档文件最多保留30份
+}
