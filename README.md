@@ -1,2 +1,2 @@
-# tools_file
-工具文件
+# script
+脚本文件
