@@ -1,2 +1,2 @@
-# script
-脚本文件
+# config_files
+配置文件
