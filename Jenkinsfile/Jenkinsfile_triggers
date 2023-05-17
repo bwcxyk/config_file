@@ -9,7 +9,7 @@ def podYaml = libraryResource 'com/yuanfu/pipeline/podyaml/GoPod.yaml'
 
 // 判断构建类型
 try{
-    if ("${runOpts}" == 'GitLab'){
+    if ("${runOpts}" == 'GitlabPush'){
         currentBuild.description = "Trigger by ${userName} ${branch}"
         gitlab.ChangeCommitStatus(projectId,commitSha,"running")
         env.runOpts = "GitlabPush"
