@@ -8,12 +8,13 @@ def gitlab = new org.devops.gitlab()
 def podYaml = libraryResource 'com/yuanfu/pipeline/podyaml/GoPod.yaml'
 
 // 判断构建类型
-if ("${runOpts}" == "GitlabPush"){
-    currentBuild.description = "Trigger by ${userName} ${branch}"
-    gitlab.ChangeCommitStatus(projectId,commitSha,"running")
-    env.runOpts = "GitlabPush"
-    
-} else {
+try{
+    if ("${runOpts}" == 'GitLab'){
+        currentBuild.description = "Trigger by ${userName} ${branch}"
+        gitlab.ChangeCommitStatus(projectId,commitSha,"running")
+        env.runOpts = "GitlabPush"
+    }
+}catch(e){
     println("+++++")
     println("手动触发")
 }
