@@ -1,0 +1,124 @@
+#!groovy
+
+@Library('jenkinslibrary@master') _
+
+// func from shareibrary
+def gitlab = new org.devops.gitlab()
+// 读取资源文件
+def podYaml = libraryResource 'com/yuanfu/pipeline/podyaml/GoPod.yaml'
+
+// 判断构建类型
+if ("${runOpts}" == "GitlabPush"){
+    currentBuild.description = "Trigger by ${userName} ${branch}"
+    gitlab.ChangeCommitStatus(projectId,commitSha,"running")
+    env.runOpts = "GitlabPush"
+    
+} else {
+    println("+++++")
+    println("手动触发")
+}
+
+// pipeline
+pipeline{
+    agent{
+        kubernetes{
+            label "jenkins-slave-${UUID.randomUUID().toString()}"
+            // inheritFrom 'jenkins-slave-${UUID.randomUUID().toString()}'
+            defaultContainer 'maven'
+            // yamlFile 'MavenPod.yaml'
+            yaml podYaml
+            showRawYaml 'flase'
+        }
+    }
+
+    
+    // 指定运行的选项（可选）
+    options {
+        // 删除隐式checkout scm语句
+        skipDefaultCheckout()
+        // 保持构建的最大个数
+        buildDiscarder(logRotator(numToKeepStr: '5'))
+    }
+
+
+    triggers {
+        GenericTrigger (
+            // 构建时的标题
+            causeString: 'Triggered by $ref',
+            // 获取POST参数中的变量，key指的是变量名，通过$ref来访问对应的值，value指的是JSON匹配值（参考Jmeter的JSON提取器）
+            // ref指的是推送的分支，格式如：refs/heads/master
+            // genericVariables: [[key: 'ref', value: '$.ref']],
+            genericVariables: [
+                [key: 'ref', value: '$.ref'],
+                [key: 'userName', value: '$.user_name'], // 用户
+                [key: 'branch', value: '$.ref'], // 分支
+                [key: 'projectId', value: '$.project.id'], // 项目id
+                [key: 'commitSha', value: '$.checkout_sha'] // 提交sha
+            ],
+            // 添加 Request parameter
+            genericRequestVariables: [[key: 'runOpts', regexpFilter: '']],
+            // 打印获取的变量的key-value，此处会打印如：ref=refs/heads/master
+            printContributedVariables: false,
+            // 打印POST传递的参数
+            printPostContent: false,
+            // regexpFilterExpression与regexpFilterText成对使用
+            // 当两者相等时，会触发对应分支的构建
+            // regexpFilterExpression: '^refs/heads/(master|production)$',
+            regexpFilterExpression: '^refs/heads/develop$',
+            regexpFilterText: '$ref',
+            // 与webhook中配置的token参数值一致
+            token: 'd9xUJ6hlwJvwdw2G0ueReLMwBL/MOIxZ'
+        )
+    }
+
+    stages{
+
+       stage("checkout") {
+            steps {
+                container('go'){
+                    script{
+                        println("test")
+                    }
+                }
+            }
+        }
+        
+    }
+
+    post {
+        always{
+            script{
+                println("always")
+            }
+        }
+        
+        success{
+            script{
+                println("success")
+                if ("${runOpts}" == "GitlabPush"){
+                    gitlab.ChangeCommitStatus(projectId,commitSha,"success")
+                }
+            
+            }
+        
+        }
+        failure{
+            script{
+                println("failure")
+                if ("${runOpts}" == "GitlabPush"){
+                    gitlab.ChangeCommitStatus(projectId,commitSha,"failed")
+                }
+            }
+        }
+        
+        aborted{
+            script{
+                println("aborted")
+                if ("${runOpts}" == "GitlabPush"){
+                    gitlab.ChangeCommitStatus(projectId,commitSha,"canceled")
+                }
+            }
+        }
+    }
+
+}
