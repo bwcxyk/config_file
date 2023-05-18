@@ -1,0 +1,94 @@
+﻿kind: StatefulSet
+apiVersion: apps/v1
+metadata:
+  name: elasticsearch
+  namespace: default
+  labels:
+    app: elasticsearch
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: elasticsearch
+  template:
+    metadata:
+      labels:
+        app: elasticsearch
+    spec:
+      containers:
+        - name: container-rshzi6
+          image: 'elasticsearch:7.14.0'
+          command:
+            - bash
+            - '-c'
+          args:
+            - >-
+              sysctl -w vm.max_map_count=262144; ulimit -l unlimited;exec su
+              elasticsearch docker-entrypoint.sh
+          ports:
+            - name: tcp-9200
+              containerPort: 9200
+              protocol: TCP
+            - name: tcp-9300
+              containerPort: 9300
+              protocol: TCP
+          env:
+            - name: ES_JAVA_OPTS
+              value: '-Xms512m -Xmx512m'
+            - name: TZ
+              value: Asia/Shanghai
+            - name: bootstrap.memory_lock
+              value: 'true'
+            - name: discovery.type
+              value: single-node
+            - name: http.cors.allow-credentials
+              value: 'true'
+            - name: http.cors.allow-headers
+              value: >-
+                X-Requested-With,X-Auth-Token,Content-Type,Content-Length,Authorization
+            - name: http.cors.enabled
+              value: 'true'
+          resources:
+            limits:
+              memory: 1500Mi
+          volumeMounts:
+            - name: es-data
+              mountPath: /usr/share/elasticsearch/data
+          lifecycle:
+            postStart:
+              exec:
+                command:
+                  - bash
+                  - '-c'
+                  - >-
+                    chown -R elasticsearch:elasticsearch
+                    /usr/share/elasticsearch/data;
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            capabilities: {}
+            privileged: true
+      restartPolicy: Always
+      securityContext: {}
+  volumeClaimTemplates:
+    - kind: PersistentVolumeClaim
+      apiVersion: v1
+      metadata:
+        name: es-data
+        namespace: default
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 10Gi
+        storageClassName: longhorn
+        volumeMode: Filesystem
+      status:
+        phase: Pending
+  serviceName: elasticsearch-acbm
+  podManagementPolicy: OrderedReady
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      partition: 0
+  revisionHistoryLimit: 10
