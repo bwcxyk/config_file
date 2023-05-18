@@ -7,14 +7,15 @@ def gitlab = new org.devops.gitlab()
 // 读取资源文件
 def podYaml = libraryResource 'com/yuanfu/pipeline/podyaml/GoPod.yaml'
 
+String runOpts = "${env.runOpts}"
+
 // 判断构建类型
-try{
-    if ("${runOpts}" == 'GitlabPush'){
-        currentBuild.description = "Trigger by ${userName} ${branch}"
-        gitlab.ChangeCommitStatus(projectId,commitSha,"running")
-        env.runOpts = "GitlabPush"
-    }
-}catch(e){
+if ("${runOpts}" == "GitlabPush"){
+    currentBuild.description = "Trigger by ${userName} ${branch}"
+    gitlab.ChangeCommitStatus(projectId,commitSha,"running")
+    env.runOpts = "GitlabPush"
+    
+} else {
     println("+++++")
     println("手动触发")
 }
@@ -31,7 +32,6 @@ pipeline{
             showRawYaml 'flase'
         }
     }
-
     
     // 指定运行的选项（可选）
     options {
@@ -40,7 +40,6 @@ pipeline{
         // 保持构建的最大个数
         buildDiscarder(logRotator(numToKeepStr: '5'))
     }
-
 
     triggers {
         GenericTrigger (
@@ -65,7 +64,7 @@ pipeline{
             // regexpFilterExpression与regexpFilterText成对使用
             // 当两者相等时，会触发对应分支的构建
             // regexpFilterExpression: '^refs/heads/(master|production)$',
-            regexpFilterExpression: '^refs/heads/develop$',
+            regexpFilterExpression: 'refs/heads/develop',
             regexpFilterText: '$ref',
             // 与webhook中配置的token参数值一致
             token: 'd9xUJ6hlwJvwdw2G0ueReLMwBL/MOIxZ'
