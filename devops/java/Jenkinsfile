@@ -33,7 +33,7 @@ pipeline{
         // 删除隐式checkout scm语句
         skipDefaultCheckout()
         // 保持构建的最大个数
-        buildDiscarder(logRotator(numToKeepStr: '5'))
+        buildDiscarder logRotator(artifactDaysToKeepStr: '1', artifactNumToKeepStr: '5', numToKeepStr: '5')
         // 设置Pipeline运行的超时时间
         // timeout(time: 1, unit: 'HOURS')
         // 日志会有时间
@@ -45,7 +45,7 @@ pipeline{
     // 参数化变量
     parameters {
     // 构建命令
-    string(name:'buildShell', defaultValue: 'mvn clean install -DskipTests', description: '构建命令')
+    string(name:'buildShell', defaultValue: 'mvn clean package -DskipTests', description: '构建命令')
     // 镜像仓库
     choice choices: ['local', 'aliyun', 'huaweicloud'], description: '镜像仓库', name: 'registry'
     }
@@ -114,7 +114,15 @@ pipeline{
                 }
             }
         }
-        
+    }
+
+    post {
+        success {
+            archiveArtifacts artifacts: '**/build/libs/*.jar, *.war', allowEmptyArchive: true
+        }
+        failure {
+            echo '构建失败'
+        }
     }
 
 }
