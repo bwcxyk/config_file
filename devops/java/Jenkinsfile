@@ -118,7 +118,7 @@ pipeline{
 
     post {
         success {
-            archiveArtifacts artifacts: '**/build/libs/*.jar, *.war', allowEmptyArchive: true
+            archiveArtifacts artifacts: '**/build/libs/*.jar, **/build/libs/*.war', allowEmptyArchive: true
         }
         failure {
             echo '构建失败'
