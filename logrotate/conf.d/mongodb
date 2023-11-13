@@ -2,6 +2,7 @@
     daily
     rotate 30
     dateext
+    copytruncate
     notifempty
     missingok
     postrotate
