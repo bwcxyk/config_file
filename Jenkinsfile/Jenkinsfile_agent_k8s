@@ -18,12 +18,12 @@ def registry = env.registry
 pipeline{
     agent{
         kubernetes{
-            label "jenkins-slave-${UUID.randomUUID().toString()}"
-            // inheritFrom 'jenkins-slave-${UUID.randomUUID().toString()}'
-            defaultContainer 'maven'
-            // yamlFile 'MavenPod.yaml'
+            // label "jenkins-slave-${UUID.randomUUID().toString()}"
+            defaultContainer 'node'
+            inheritFrom 'jenkins-slave'
             yaml podYaml
             showRawYaml 'flase'
+            // slaveConnectTimeout 360
         }
     }
 
