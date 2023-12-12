@@ -6,6 +6,7 @@
     notifempty
     compress
     delaycompress
+    copytruncate
     postrotate
         [ ! -f /usr/local/mongodb/mongod.pid ] || /bin/kill -SIGUSR1 `cat /usr/local/mongodb/mongod.pid`
     endscript
