@@ -1,13 +1,12 @@
 /usr/local/mongodb/data/logs/*.log {
     daily
     rotate 30
-    dateext
-    copytruncate
-    notifempty
     missingok
+    dateext
+    notifempty
+    compress
+    delaycompress
     postrotate
         [ ! -f /usr/local/mongodb/mongod.pid ] || /bin/kill -SIGUSR1 `cat /usr/local/mongodb/mongod.pid`
     endscript
-    compress
-    delaycompress
 }
