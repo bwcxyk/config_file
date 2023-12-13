@@ -3,6 +3,7 @@
     rotate 30
     missingok
     dateext
+    dateyesterday
     notifempty
     compress
     delaycompress
