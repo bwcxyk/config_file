@@ -1,0 +1,4 @@
+FROM tomcat:8.5.64-jdk8-corretto
+
+# copy arthas
+COPY --from=hengyunabc/arthas:3.7.1 /opt/arthas /opt/arthas
