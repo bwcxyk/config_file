@@ -5,23 +5,16 @@
 // func from shareibrary
 def build = new org.devops.build()
 def tools = new org.devops.tools()
-def gitlab = new org.devops.gitlab()
 def checkout = new org.devops.checkout()
 // 读取资源文件
 def podYaml = libraryResource 'com/yuanfu/pipeline/podyaml/MavenPod.yaml'
-
-// env
-def buildShell = env.buildShell
-def registry = env.registry
 
 // pipeline
 pipeline{
     agent{
         kubernetes{
-            label "jenkins-slave-${UUID.randomUUID().toString()}"
-            // inheritFrom 'jenkins-slave-${UUID.randomUUID().toString()}'
+            inheritFrom 'jenkins-slave'
             defaultContainer 'maven'
-            // yamlFile 'MavenPod.yaml'
             yaml podYaml
             showRawYaml 'flase'
         }
@@ -45,7 +38,7 @@ pipeline{
     // 参数化变量
     parameters {
     // 构建命令
-    string(name:'buildShell', defaultValue: 'mvn clean package -DskipTests', description: '构建命令')
+    string(name:'buildShell', defaultValue: 'mvn clean deploy', description: '构建命令')
     // 镜像仓库
     choice choices: ['local', 'aliyun', 'huaweicloud'], description: '镜像仓库', name: 'registry'
     }
@@ -57,8 +50,7 @@ pipeline{
                 container('maven'){
                     script{
                         tools.PrintMes("检出代码","green")
-                        // checkout scm
-                        checkout.CheckOut()
+                        checkout.checkoutWithDepth()
                     }
                 }
             }
@@ -72,27 +64,7 @@ pipeline{
                     writeFile file: 'settings.xml', text: settingsContent
                 }
                 container('maven') {
-                    // build.Build(buildType,buildShell)
-                    sh "${env.buildShell} -s settings.xml"
-                }
-            }
-        }
-
-        stage("deploy"){
-//            when {
-//                  anyOf { 
-//                      branch 'master'; branch 'main'
-//                      }
-//             }
-            steps{
-                script{
-                    tools.PrintMes("推送制品","green")
-                    settingsContent = libraryResource 'config/settings.xml'
-                    writeFile file: 'settings.xml', text: settingsContent
-                }
-                container('maven') {
-                    // build.Build(buildType,buildShell)
-                    sh "mvn clean deploy -DskipTests -s settings.xml"
+                    sh "${env.buildShell} -Dmaven.test.skip=true -s settings.xml"
                 }
             }
         }
@@ -114,6 +86,24 @@ pipeline{
                 }
             }
         }
+
+        // kaniko 构建镜像
+        stage("KanikoBuildImages"){
+            steps{
+                container('kaniko'){
+                    script{
+                        tools.PrintMes("构建上传镜像","green")
+                        sh """
+                        /kaniko/executor \
+                            --dockerfile=ddh-server/Dockerfile \
+                            --context=dir://. \
+                            --destination=192.168.1.60/library/demo:1.0
+                        """
+                    }
+                }
+            }
+        }
+
     }
 
     post {
