@@ -4,4 +4,6 @@ LABEL maintainer="yaokun <yaokun@bwcxtech.com>"
 
 ENV JAVA_TOOL_OPTIONS=-javaagent:/skywalking/agent/skywalking-agent.jar
 
-COPY skywalking-agent /skywalking/agent
+# copy skywalking
+COPY --from=apache/skywalking-java-agent:9.1.0-java8 /skywalking/agent /opt/skywalking-agent
+
