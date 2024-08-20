@@ -1,0 +1,18 @@
+FROM amazoncorretto:8
+LABEL maintainer="yaokun <yaokun@bwcxtech.com>"
+
+ENV TZ "Asia/Shanghai"
+
+# opentelemetry javaagent
+ENV OTEL_EXCLUDE_URL_PATHS=".*/actuator/health" \
+    OTEL_EXCLUDE_DB_STATEMENT="PING,QUIT,AUTH*,select .* from dual"
+
+# copy opentelemetry
+COPY --from=yaokun/opentelemetry-javaagent:2.6.0 /opt/otel /opt/otel
+
+COPY target/*.jar /home/app.jar
+
+WORKDIR /home
+EXPOSE 8080
+
+ENTRYPOINT ["/bin/bash", "-c", "java ${JAVA_OPTS} -jar app.jar --server.port=8080"]
