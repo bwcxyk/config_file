@@ -1,0 +1,10 @@
+FROM jetty:9.4-jdk8
+LABEL maintainer="yaokun <yaokun@bwcxtech.com>"
+
+ENV TZ "Asia/Shanghai"
+
+COPY ./build/libs/*.war /var/lib/jetty/webapps/
+
+EXPOSE 8080
+
+CMD ["java", "-jar", "/usr/local/jetty/start.jar"]
