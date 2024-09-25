@@ -1,1 +1,15 @@
-node_modules
+# Ignore everything
+*
+
+!Dockerfile
+!*.sh
+!*.conf
+
+!fonts
+
+# Allow nodejs build
+!dist
+
+# Allow java build
+!target/*.war
+!target/*.jar
