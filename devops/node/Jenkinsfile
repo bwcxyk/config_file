@@ -3,30 +3,23 @@
 @Library('jenkinslibrary@master') _
 
 // func from shareibrary
-def build = new org.devops.build()
 def tools = new org.devops.tools()
 def checkout = new org.devops.checkout()
 
 // 读取资源文件
-def DockerPush = libraryResource 'com/yuanfu/pipeline/scripts/push_1of2.sh'
 def podYaml = libraryResource 'com/yuanfu/pipeline/podyaml/NodejsPod.yaml'
-
-// env
-def buildType = env.buildType
-def buildShell = env.buildShell
-def registry = env.registry
 
 // pipeline
 pipeline{
     agent{
         kubernetes{
-            label "jenkins-slave-${UUID.randomUUID().toString()}"
             defaultContainer 'node'
+            inheritFrom 'jenkins-slave'
             yaml podYaml
             showRawYaml 'flase'
+            // slaveConnectTimeout 360
         }
     }
-
     
     // 指定运行的选项（可选）
     options {
@@ -39,15 +32,13 @@ pipeline{
         // 日志会有时间
         // timestamps()
         // 禁止并行
-        // disableConcurrentBuilds()
+        disableConcurrentBuilds()
     }
     
     // 参数化变量
     parameters {
-    // 构建类型
-    string(name:'buildType', defaultValue: 'cnpm', description: '构建类型')
     // 构建命令
-    string(name:'buildShell', defaultValue: 'install && npm run build', description: '构建命令')
+    string(name:'buildShell', defaultValue: 'cnpm install && npm run build', description: '构建命令')
     // 镜像仓库
     choice choices: ['local', 'aliyun', 'huaweicloud'], description: '镜像仓库', name: 'registry'
     }
@@ -59,8 +50,7 @@ pipeline{
                 container('node'){
                     script{
                         tools.PrintMes("检出代码","green")
-                        // checkout scm
-                        checkout.CheckOut()
+                        checkout.checkoutWithDepth()
                     }
                 }
             }
@@ -71,12 +61,7 @@ pipeline{
                 container('node'){
                     script{
                         tools.PrintMes("执行打包","green")
-                        sh '''
-                        sed -i "s|^axios.defaults.baseURL.*$|axios.defaults.baseURL = '###baseURL###'|g" $WORKSPACE/src/utils/http.js
-                        npm config set registry http://192.168.1.200:8081/nexus/repository/npm-group
-                        cnpm config set registry http://192.168.1.200:8081/nexus/repository/npm-group/
-                        '''
-                        build.Build(buildType,buildShell)
+                        sh "${env.buildShell}"
                     }
                 }
             }
@@ -90,7 +75,8 @@ pipeline{
                        tools.PrintMes("构建上传镜像","green")
                         imageTag = tools.createVersion()
                         currentBuild.description = "docker tag is ${imageTag}"
-                        writeFile file: 'push_1of2.sh', text: DockerPush
+                        PushScriptContent = libraryResource 'com/yuanfu/pipeline/scripts/push_1of2.sh'
+                        writeFile file: 'push_1of2.sh', text: PushScriptContent
                         sh """
                         sh push_1of2.sh ${registry} ${imageTag}
                         """
@@ -102,3 +88,4 @@ pipeline{
     }
 
 }
+
