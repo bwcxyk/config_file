@@ -9,7 +9,3 @@
 
 # Allow nodejs build
 !dist
-
-# Allow java build
-!target/*.war
-!target/*.jar
