@@ -7,27 +7,9 @@ def build = new org.devops.build()
 def tools = new org.devops.tools()
 def gitlab = new org.devops.gitlab()
 
-def runOpts
-//env
-String buildType = "${env.buildType}"
-String buildShell = "${env.buildShell}"
-String registry = "${env.registry}"
-
-if ("${runOpts}" == "GitlabPush"){
-    branchName = branch - "refs/heads/"
-    
-    currentBuild.description = "Trigger by ${userName} ${branch}"
-    gitlab.ChangeCommitStatus(projectId,commitSha,"running")
-    env.runOpts = "GitlabPush"
-
-    
-} else {
-   println("-----手动触发构建-----");
-}
-
 //pipeline
 pipeline{
-    agent { node { label "build"}}
+    agent any
     
     // 指定运行的选项（可选）
     options {
@@ -79,68 +61,21 @@ pipeline{
             steps{
                 script{
                     tools.PrintMes("构建上传镜像","green")
-                DATE=new Date().format('yyyyMMddHHmmss')
-                currentBuild.description = "docker tag is ${DATE}"
-                sh """
-                curl http://192.168.1.83/other/devops/raw/master/resources/org/foo/push_1of2.sh | sh -s ${registry}
-                """
-                }
+                    sh """
+                    curl http://192.168.1.83/other/devops/raw/master/resources/org/foo/push_1of2.sh | sh -s ${registry}
+                    """
+                    }
             }
         }
         
-        // gittag
-            stage("gittag"){
-                when {
-                    branch 'master'
-                }
-                steps{
-                    script{
-                        tools.PrintMes("gittag","green")
-                sh """
-                curl http://192.168.1.83/other/devops/-/raw/master/resources/org/foo/git_tag_del.sh | sh
-                echo ${BUILD_TIMESTAMP}
-                git tag -a -m 'Release version ${BUILD_TIMESTAMP}' ${BUILD_TIMESTAMP}
-                git push origin --tags
-                echo 'git标签添加成功'
-                """
-                }
-            }
-        }
     }
 
     post {
-        always{
-            script{
-                println("always")
-            }
+        success {
+            archiveArtifacts artifacts: '**/target/*.jar, **/target/*.war', allowEmptyArchive: true
         }
-        
-        success{
-            script{
-                println("success")
-                if ("${runOpts}" == "GitlabPush"){
-                    gitlab.ChangeCommitStatus(projectId,commitSha,"success")
-                }            
-            }
-        
-        }
-        failure{
-            script{
-                println("failure")
-                if ("${runOpts}" == "GitlabPush"){
-                    gitlab.ChangeCommitStatus(projectId,commitSha,"failed")
-                }
-            }
-        }
-        
-        aborted{
-            script{
-                println("aborted")
-                if ("${runOpts}" == "GitlabPush"){
-                    gitlab.ChangeCommitStatus(projectId,commitSha,"canceled")
-                }
-            }
-        
+        failure {
+            echo '构建失败'
         }
     }
 
