@@ -5,7 +5,6 @@
 //func from shareibrary
 def build = new org.devops.build()
 def tools = new org.devops.tools()
-def gitlab = new org.devops.gitlab()
 
 //pipeline
 pipeline{
@@ -64,7 +63,7 @@ pipeline{
                     sh """
                     curl http://192.168.1.83/other/devops/raw/master/resources/org/foo/push_1of2.sh | sh -s ${registry}
                     """
-                    }
+                }
             }
         }
         
