@@ -3,26 +3,19 @@
 @Library('jenkinslibrary@master') _
 
 // func from shareibrary
-def build = new org.devops.build()
 def tools = new org.devops.tools()
-def gitlab = new org.devops.gitlab()
 def checkout = new org.devops.checkout()
 // 读取资源文件
 def podYaml = libraryResource 'com/yuanfu/pipeline/podyaml/MavenPod.yaml'
-
-// env
-def buildShell = env.buildShell
-def registry = env.registry
 
 // pipeline
 pipeline{
     agent{
         kubernetes{
-            // label "jenkins-slave-${UUID.randomUUID().toString()}"
             defaultContainer 'node'
             inheritFrom 'jenkins-slave'
             yaml podYaml
-            showRawYaml 'flase'
+            showRawYaml false
             // slaveConnectTimeout 360
         }
     }
@@ -33,7 +26,7 @@ pipeline{
         // 删除隐式checkout scm语句
         skipDefaultCheckout()
         // 保持构建的最大个数
-        buildDiscarder(logRotator(numToKeepStr: '5'))
+        buildDiscarder logRotator(artifactDaysToKeepStr: '1', artifactNumToKeepStr: '5', numToKeepStr: '5')
         // 设置Pipeline运行的超时时间
         // timeout(time: 1, unit: 'HOURS')
         // 日志会有时间
@@ -45,7 +38,7 @@ pipeline{
     // 参数化变量
     parameters {
     // 构建命令
-    string(name:'buildShell', defaultValue: 'mvn clean install -DskipTests', description: '构建命令')
+    string(name:'buildShell', defaultValue: 'mvn clean package', description: '构建命令')
     // 镜像仓库
     choice choices: ['local', 'aliyun', 'huaweicloud'], description: '镜像仓库', name: 'registry'
     }
@@ -57,8 +50,7 @@ pipeline{
                 container('maven'){
                     script{
                         tools.PrintMes("检出代码","green")
-                        // checkout scm
-                        checkout.CheckOut()
+                        checkout.checkoutCustom()
                     }
                 }
             }
@@ -72,8 +64,7 @@ pipeline{
                     writeFile file: 'settings.xml', text: settingsContent
                 }
                 container('maven') {
-                    // build.Build(buildType,buildShell)
-                    sh "${env.buildShell} -s settings.xml"
+                    sh "${env.buildShell} -DskipTests -s settings.xml"
                 }
             }
         }
