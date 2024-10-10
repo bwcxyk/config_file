@@ -7,16 +7,9 @@ def build = new org.devops.build()
 def tools = new org.devops.tools()
 
 
-def runOpts
-//env
-String buildType = "${env.buildType}"
-String buildShell = "${env.buildShell}"
-String registry = "${env.registry}"
-
-
 //pipeline
 pipeline{
-    agent { node { label "build"}}
+    agent any
 
     // 指定运行的选项（可选）
     options {
@@ -72,24 +65,6 @@ pipeline{
                 }
             }
         }
-        // gittag
-            stage("gittag"){
-                when {
-                    branch 'master'
-                }
-                steps{
-                    script{
-                        tools.PrintMes("gittag","green")
-                sh """
-                curl http://192.168.1.83/other/devops/-/raw/master/resources/org/foo/git_tag_del.sh | sh
-                echo ${BUILD_TIMESTAMP}
-                git tag -a -m 'Release version ${BUILD_TIMESTAMP}' ${BUILD_TIMESTAMP}
-                git push origin --tags
-                echo 'git标签添加成功'
-                """
-                }
-            }
-        }
     }
-    
+
 }
