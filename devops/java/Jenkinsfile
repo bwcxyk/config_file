@@ -3,24 +3,29 @@
 @Library('jenkinslibrary@master') _
 
 // func from shareibrary
-def build = new org.devops.build()
 def tools = new org.devops.tools()
 def checkout = new org.devops.checkout()
+def maven = new org.devops.maven()
+def docker = new org.devops.docker()
+
 // 读取资源文件
-def podYaml = libraryResource 'com/yuanfu/pipeline/podyaml/MavenPod.yaml'
+def podYaml = libraryResource 'org/devops/pipeline/podyaml/MavenPod.yaml'
 
 // pipeline
 pipeline{
     agent{
         kubernetes{
-            inheritFrom 'jenkins-slave'
             defaultContainer 'maven'
+            inheritFrom 'jenkins-slave'
             yaml podYaml
-            showRawYaml 'flase'
+            showRawYaml false
         }
     }
 
-    
+    environment {
+        repo = "yuanfu-tms"
+    }
+
     // 指定运行的选项（可选）
     options {
         // 删除隐式checkout scm语句
@@ -32,13 +37,11 @@ pipeline{
         // 日志会有时间
         // timestamps()
         // 禁止并行
-        // disableConcurrentBuilds()
+        disableConcurrentBuilds()
     }
     
     // 参数化变量
     parameters {
-    // 构建命令
-    string(name:'buildShell', defaultValue: 'mvn clean deploy', description: '构建命令')
     // 镜像仓库
     choice choices: ['local', 'aliyun', 'huaweicloud'], description: '镜像仓库', name: 'registry'
     }
@@ -50,7 +53,7 @@ pipeline{
                 container('maven'){
                     script{
                         tools.PrintMes("检出代码","green")
-                        checkout.checkoutWithDepth()
+                        checkout.checkoutCustom()
                     }
                 }
             }
@@ -58,13 +61,11 @@ pipeline{
 
         stage("Build"){
             steps{
-                script{
-                    tools.PrintMes("编译","green")
-                    settingsContent = libraryResource 'config/settings.xml'
-                    writeFile file: 'settings.xml', text: settingsContent
-                }
-                container('maven') {
-                    sh "${env.buildShell} -Dmaven.test.skip=true -s settings.xml"
+                container('maven'){
+                    script{
+                        tools.PrintMes("执行打包","green")
+                        maven.deploy()
+                    }
                 }
             }
         }
@@ -74,14 +75,11 @@ pipeline{
             steps{
                 container('docker'){
                     script{
-                        tools.PrintMes("构建上传镜像","green")
-                        imageTag = tools.createVersion()
-                        currentBuild.description = "docker tag is ${imageTag}"
-                        PushScriptContent = libraryResource 'com/yuanfu/pipeline/scripts/push_1of2.sh'
-                        writeFile file: 'push_1of2.sh', text: PushScriptContent
-                        sh """
-                        sh push_1of2.sh ${registry} ${imageTag}
-                        """
+                        tools.PrintMes("构建镜像","green")
+                        docker.docker()
+                        docker.build("wcpt-edi-wcpt-service").push()
+                        docker.build("$WORKSPACE/wcpt-edi-dubbo-wcpt-service-impl", "wcpt-edi-wcpt-service").push()
+                        docker.build("$WORKSPACE/wcpt-edi-api", "wcpt-edi-api").push()
                     }
                 }
             }
