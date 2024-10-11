@@ -77,8 +77,9 @@ pipeline{
                     script{
                         tools.PrintMes("构建镜像","green")
                         docker.docker()
+                        // 单体项目只需传入镜像名称
                         docker.build("wcpt-edi-wcpt-service").push()
-                        docker.build("$WORKSPACE/wcpt-edi-dubbo-wcpt-service-impl", "wcpt-edi-wcpt-service").push()
+                        // 子项目需要传入子项目路径和镜像名称
                         docker.build("$WORKSPACE/wcpt-edi-api", "wcpt-edi-api").push()
                     }
                 }
