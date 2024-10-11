@@ -5,9 +5,10 @@
 // func from shareibrary
 def tools = new org.devops.tools()
 def checkout = new org.devops.checkout()
+def docker = new org.devops.docker()
 
 // 读取资源文件
-def podYaml = libraryResource 'com/yuanfu/pipeline/podyaml/NodejsPod.yaml'
+def podYaml = libraryResource 'org/devops/pipeline/podyaml/NodejsPod.yaml'
 
 // pipeline
 pipeline{
@@ -16,11 +17,14 @@ pipeline{
             defaultContainer 'node'
             inheritFrom 'jenkins-slave'
             yaml podYaml
-            showRawYaml 'flase'
-            // slaveConnectTimeout 360
+            showRawYaml false
         }
     }
-    
+
+    environment {
+        repo = "yuanfu-tms"
+    }
+
     // 指定运行的选项（可选）
     options {
         // 删除隐式checkout scm语句
@@ -50,7 +54,7 @@ pipeline{
                 container('node'){
                     script{
                         tools.PrintMes("检出代码","green")
-                        checkout.checkoutWithDepth()
+                        checkout.checkoutCustom()
                     }
                 }
             }
@@ -75,20 +79,13 @@ pipeline{
             steps{
                 container('docker'){
                     script{
-                       tools.PrintMes("构建上传镜像","green")
-                        imageTag = tools.createVersion()
-                        currentBuild.description = "docker tag is ${imageTag}"
-                        PushScriptContent = libraryResource 'com/yuanfu/pipeline/scripts/push_1of2.sh'
-                        writeFile file: 'push_1of2.sh', text: PushScriptContent
-                        sh """
-                        sh push_1of2.sh ${registry} ${imageTag}
-                        """
+                        tools.PrintMes("构建镜像","green")
+                        docker.docker()
+                        docker.build("node-tms").push()
                     }
                 }
             }
         }
-        
     }
 
 }
-
