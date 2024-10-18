@@ -2,35 +2,46 @@
 
 @Library('jenkinslibrary@master') _
 
-//func from shareibrary
-def build = new org.devops.build()
+// func from shareibrary
 def tools = new org.devops.tools()
+def checkout = new org.devops.checkout()
+def maven = new org.devops.maven()
+def docker = new org.devops.docker()
 
+// 读取资源文件
+def podYaml = libraryResource 'org/devops/pipeline/podyaml/MavenPod.yaml'
 
-//pipeline
+// pipeline
 pipeline{
-    agent any
+    agent{
+        kubernetes{
+            defaultContainer 'maven'
+            inheritFrom 'jenkins-slave'
+            yaml podYaml
+            showRawYaml false
+        }
+    }
+
+    environment {
+        repo = "yuanfu-tms"
+    }
 
     // 指定运行的选项（可选）
     options {
         // 删除隐式checkout scm语句
         skipDefaultCheckout()
-        //保持构建的最大个数
-        buildDiscarder(logRotator(numToKeepStr: '5'))
+        // 保持构建的最大个数
+        buildDiscarder logRotator(artifactDaysToKeepStr: '1', artifactNumToKeepStr: '5', numToKeepStr: '5')
         // 设置Pipeline运行的超时时间
-        //timeout(time: 1, unit: 'HOURS')
+        // timeout(time: 1, unit: 'HOURS')
         // 日志会有时间
-        //timestamps()
+        // timestamps()
         // 禁止并行
-        //disableConcurrentBuilds()
+        disableConcurrentBuilds()
     }
     
     // 参数化变量
     parameters {
-    // 构建类型
-    string(name:'buildType', defaultValue: 'mvn', description: '构建类型')
-    // 构建命令
-    string(name:'buildShell', defaultValue: 'clean install -DskipTests', description: '构建命令')
     // 镜像仓库
     choice choices: ['local', 'aliyun', 'huaweicloud'], description: '镜像仓库', name: 'registry'
     }
@@ -39,31 +50,47 @@ pipeline{
 
        stage("checkout") {
             steps {
-                script{
-                    tools.PrintMes("检出代码","green")
-                    checkout scm
+                container('maven'){
+                    script{
+                        tools.PrintMes("检出代码","green")
+                        checkout.checkoutCustom()
+                    }
                 }
             }
         }
 
         stage("Build"){
             steps{
-                script{
-                    tools.PrintMes("执行打包","green")
-                    build.Build(buildType,buildShell)
+                container('maven'){
+                    script{
+                        tools.PrintMes("执行打包","green")
+                        maven.build()
+                    }
                 }
             }
         }
+
         // 构建镜像
         stage("BuildImages"){
             steps{
-                script{
-                    tools.PrintMes("构建上传镜像","green")
-                sh """
-                curl http://192.168.1.83/other/devops/raw/master/resources/org/foo/push_1of2.sh | sh -s ${registry}
-                """
+                container('docker'){
+                    script{
+                        tools.PrintMes("构建镜像","green")
+                        docker.docker()
+                        docker.build(project: "demo").push()
+                    }
                 }
             }
+        }
+        
+    }
+
+    post {
+        success {
+            archiveArtifacts artifacts: '**/target/*.jar, **/target/*.war', fingerprint: true
+        }
+        failure {
+            echo '构建失败'
         }
     }
 
