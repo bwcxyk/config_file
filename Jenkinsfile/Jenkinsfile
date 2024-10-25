@@ -50,7 +50,7 @@ pipeline{
 
     stages{
 
-       stage("checkout") {
+       stage("Checkout") {
             steps {
                 container('maven'){
                     script{
@@ -73,7 +73,7 @@ pipeline{
         }
 
         // 构建镜像
-        stage("BuildImages"){
+        stage("Building Container Images"){
             steps{
                 container('docker'){
                     script{
