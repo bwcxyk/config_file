@@ -15,8 +15,8 @@ def podYaml = libraryResource 'org/devops/pipeline/podyaml/MavenPod.yaml'
 pipeline{
     agent{
         kubernetes{
-            defaultContainer 'maven'
             inheritFrom 'jenkins-slave'
+            defaultContainer 'maven'
             yaml podYaml
             showRawYaml false
         }
@@ -42,6 +42,8 @@ pipeline{
     
     // 参数化变量
     parameters {
+    // 构建工具参数
+    string(name: 'BUILD_ARGS', defaultValue: '', description: '可选的构建工具参数')
     // 镜像仓库
     choice choices: ['local', 'aliyun', 'huaweicloud'], description: '镜像仓库', name: 'registry'
     }
@@ -64,7 +66,7 @@ pipeline{
                 container('maven'){
                     script{
                         tools.PrintMes("执行打包","green")
-                        maven.build()
+                        maven.build(BUILD_ARGS)
                     }
                 }
             }
