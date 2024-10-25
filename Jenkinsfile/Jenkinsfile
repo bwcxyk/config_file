@@ -45,7 +45,7 @@ pipeline{
     // 构建工具参数
     string(name: 'BUILD_ARGS', defaultValue: '', description: '可选的构建工具参数')
     // 镜像仓库
-    choice choices: ['local', 'aliyun', 'huaweicloud'], description: '镜像仓库', name: 'registry'
+    choice choices: ['local', 'aliyun', 'huaweicloud'], description: '镜像仓库', name: 'REGISTRY'
     }
 
     stages{
