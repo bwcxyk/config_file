@@ -1,0 +1,13 @@
+stages:
+  - verify
+
+verify_merge_branch:
+  stage: verify
+  script:
+    - |
+      if [[ "$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME" != "develop" && "$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME" != hotfix/* ]]; then
+        echo "Only 'develop' or 'hotfix/*' branches can be merged into main."
+        exit 1
+      fi
+  rules:
+    - if: '$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main"'
