@@ -1,6 +1,14 @@
 stages:
   - verify
 
+# 其他分支的合并流水线作业
+other_merge_branch:
+  stage: verify
+  script:
+    - echo "This merge request targets a branch other than 'main'. Skipping verification."
+  rules:
+    - if: '$CI_MERGE_REQUEST_TARGET_BRANCH_NAME != "main"'  # 非 main 分支时执行
+
 verify_merge_branch:
   stage: verify
   script:
@@ -10,4 +18,4 @@ verify_merge_branch:
         exit 1
       fi
   rules:
-    - if: '$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main"'
+    - if: '$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main"'  # 仅在合并到 main 时执行
