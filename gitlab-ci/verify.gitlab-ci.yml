@@ -1,21 +1,28 @@
 stages:
   - verify
 
-# 其他分支的合并流水线作业
 other_merge_branch:
+  only:
+    - merge_requests  # 仅在合并请求中执行
+  except:
+    - main            # 排除 main 分支
   stage: verify
   script:
     - echo "This merge request targets a branch other than 'main'. Skipping verification."
-  rules:
-    - if: '$CI_MERGE_REQUEST_TARGET_BRANCH_NAME != "main"'  # 非 main 分支时执行
 
 verify_merge_branch:
+  only:
+    - merge_requests
+  except:
+    - branches            # 排除所有直接提交的分支
   stage: verify
   script:
     - |
-      if [[ "$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME" != "develop" && "$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME" != hotfix/* ]]; then
-        echo "Only 'develop' or 'hotfix/*' branches can be merged into main."
-        exit 1
+      if [[ "$CI_MERGE_REQUEST_TARGET_BRANCH_NAME" == "main" ]]; then
+        if [[ "$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME" != "develop" && "$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME" != hotfix/* ]]; then
+          echo "Only 'develop' or 'hotfix/*' branches can be merged into main."
+          exit 1
+        fi
+      else
+        echo "This merge request is not targeting 'main'. Skipping verification."
       fi
-  rules:
-    - if: '$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main"'  # 仅在合并到 main 时执行
