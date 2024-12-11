@@ -5,6 +5,7 @@
 // func from shareibrary
 def tools = new org.devops.tools()
 def checkout = new org.devops.checkout()
+def npm = new org.devops.npm()
 def docker = new org.devops.docker()
 
 // 读取资源文件
@@ -42,9 +43,9 @@ pipeline{
     // 参数化变量
     parameters {
     // 构建命令
-    string(name:'buildShell', defaultValue: 'cnpm install && npm run build', description: '构建命令')
+    string(name:'buildCommand', defaultValue: 'npm run build', description: '构建命令')
     // 镜像仓库
-    choice choices: ['local', 'aliyun', 'huaweicloud'], description: '镜像仓库', name: 'registry'
+    choice choices: ['local', 'aliyun', 'huaweicloud'], description: '镜像仓库', name: 'REGISTRY'
     }
 
     stages{
@@ -65,10 +66,7 @@ pipeline{
                 container('node'){
                     script{
                         tools.PrintMes("执行打包","green")
-                        sh '''
-                        sed -i "s|^axios.defaults.baseURL.*$|axios.defaults.baseURL = '###baseURL###'|g" $WORKSPACE/src/utils/http.js
-                        '''
-                        sh "${env.buildShell}"
+                        npm.install(cnpm).build(params.buildCommand)
                     }
                 }
             }
@@ -81,11 +79,12 @@ pipeline{
                     script{
                         tools.PrintMes("构建镜像","green")
                         docker.docker()
-                        docker.build("node-tms").push()
+                        docker.build(project: "node-tms").push()
                     }
                 }
             }
         }
+        
     }
 
 }
