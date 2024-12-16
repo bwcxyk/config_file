@@ -6,7 +6,7 @@ validate_merge:
   script:
     - |
       if [[ "$CI_MERGE_REQUEST_TARGET_BRANCH_NAME" == "main" && ! "$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME" =~ ^(develop|hotfix/.*)$ ]]; then
-        echo "GL-HOOK-ERR: ❌ 只允许从 develop 或 hotfix/* 分支合并到 main 分支。当前源分支: $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME";
+        echo "❌ 只允许从 develop 或 hotfix/* 分支合并到 main 分支。当前源分支: $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME";
         exit 1
       fi
   rules:
