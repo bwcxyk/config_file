@@ -1,28 +1,14 @@
 stages:
-  - verify
+  - pre-merge
 
-other_merge_branch:
-  only:
-    - merge_requests  # 仅在合并请求中执行
-  except:
-    - main            # 排除 main 分支
-  stage: verify
-  script:
-    - echo "This merge request targets a branch other than 'main'. Skipping verification."
-
-verify_merge_branch:
-  only:
-    - merge_requests
-  except:
-    - branches            # 排除所有直接提交的分支
-  stage: verify
+validate_merge:
+  stage: pre-merge
   script:
     - |
-      if [[ "$CI_MERGE_REQUEST_TARGET_BRANCH_NAME" == "main" ]]; then
-        if [[ "$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME" != "develop" && "$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME" != hotfix/* ]]; then
-          echo "Only 'develop' or 'hotfix/*' branches can be merged into main."
-          exit 1
-        fi
-      else
-        echo "This merge request is not targeting 'main'. Skipping verification."
+      if [[ "$CI_MERGE_REQUEST_TARGET_BRANCH_NAME" == "main" && ! "$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME" =~ ^(develop|hotfix/.*)$ ]]; then
+        echo "GL-HOOK-ERR: ❌ 只允许从 develop 或 hotfix/* 分支合并到 main 分支。当前源分支: $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME";
+        exit 1
       fi
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: always
