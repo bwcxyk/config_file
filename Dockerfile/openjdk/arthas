@@ -1,4 +1,0 @@
-FROM amazoncorretto:8
-
-# copy arthas
-COPY --from=hengyunabc/arthas:3.7.1 /opt/arthas /opt/arthas
