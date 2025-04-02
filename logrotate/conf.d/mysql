@@ -2,7 +2,8 @@
     create 640 mysql mysql
     notifempty
     daily
-    rotate 5
+    dateext
+    rotate 30
     missingok
     compress
     postrotate
