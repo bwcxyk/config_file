@@ -36,8 +36,8 @@ pipeline{
         // timeout(time: 1, unit: 'HOURS')
         // 日志会有时间
         // timestamps()
-        // 禁止并行
-        disableConcurrentBuilds()
+        // 禁止并行并终止旧构建
+        disableConcurrentBuilds abortPrevious: true
     }
     
     // 参数化变量
