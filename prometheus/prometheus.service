@@ -1,0 +1,16 @@
+[Unit]
+Description=Prometheus
+After=network.target
+[Service]
+Type=simple
+User=prometheus
+ExecStart=/usr/local/prometheus/prometheus \
+--config.file=/usr/local/prometheus/prometheus.yml \
+--storage.tsdb.path=/data/prometheus \
+--storage.tsdb.retention=30d \
+--web.enable-admin-api \
+--web.enable-lifecycle \
+--web.external-url=http://prom.example.com
+Restart=on-failure
+[Install]
+WantedBy=multi-user.target
