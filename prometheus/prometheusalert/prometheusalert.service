@@ -1,0 +1,11 @@
+[Unit]
+Description=prometheusalert
+After=network-online.target
+
+[Service]
+Restart=on-failure
+WorkingDirectory=/usr/local/prometheus/prometheusalert
+ExecStart=/usr/local/prometheus/prometheusalert/PrometheusAlert
+
+[Install]
+WantedBy=multi-user.target
