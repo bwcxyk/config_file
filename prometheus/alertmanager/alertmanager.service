@@ -1,0 +1,15 @@
+[Unit]
+Description=Alertmanager
+After=network.target
+
+[Service]
+Type=simple
+User=prometheus
+ExecStart=/usr/local/alertmanager/alertmanager \
+--web.external-url=http://alert.example.com \
+--config.file=/usr/local/alertmanager/alertmanager.yml \
+--storage.path=/usr/local/alertmanager/data
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
