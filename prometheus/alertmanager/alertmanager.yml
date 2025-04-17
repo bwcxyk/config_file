@@ -1,16 +1,13 @@
 global:
   resolve_timeout: 5m
 route:
-  receiver: webhook
-  group_by: [alertname]
-  group_wait: 30s
-  group_interval: 5m
-  repeat_interval: 3h
-  routes:
-  - receiver: webhook
-    group_wait: 10s
+  group_by: [instance]
+  group_wait: 10m
+  group_interval: 1m
+  repeat_interval: 10m
+  receiver: 'web.hook.prometheusalert'
 receivers:
-- name: webhook
+- name: 'web.hook.prometheusalert'
   webhook_configs:
-  - url: http://localhost:8060/dingtalk/webhook/send  
+  - url: http://localhost:8060/prometheusalert?type=dd&tpl=prometheus2-dd
     send_resolved: true
