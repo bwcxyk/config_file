@@ -36,14 +36,12 @@ pipeline{
         // timeout(time: 1, unit: 'HOURS')
         // 日志会有时间
         // timestamps()
-        // 禁止并行
-        disableConcurrentBuilds()
+        // 禁止并行并终止旧构建
+        disableConcurrentBuilds abortPrevious: true
     }
     
     // 参数化变量
     parameters {
-    // 构建命令
-    string(name:'buildCommand', defaultValue: 'npm run build', description: '构建命令')
     // 镜像仓库
     choice choices: ['local', 'aliyun', 'huaweicloud'], description: '镜像仓库', name: 'REGISTRY'
     }
@@ -66,7 +64,7 @@ pipeline{
                 container('node'){
                     script{
                         tools.PrintMes("执行打包","green")
-                        npm.install("cnpm").build(params.buildCommand ?: '')
+                        npm.install("cnpm").build()
                     }
                 }
             }
