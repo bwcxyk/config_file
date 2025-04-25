@@ -37,6 +37,7 @@ pipeline{
     parameters {
     // 构建工具参数
     string(name: 'BUILD_ARGS', defaultValue: '', description: '可选的构建工具参数')
+    booleanParam description: '是否进行签名加固流程', name: 'SIGN_SHIELD'
     }
     
     stages{
@@ -63,17 +64,12 @@ pipeline{
 
         // jiagu
         stage("jiagu"){
-            when {
-                branch 'master'
-            }
             steps{
                 script{
-                    tools.PrintMes("加固","green")
-                sh """
-                export IS_PUBLISH=prod
-                sh jiagu.sh
-                echo '加固完成'
-                """
+                    tools.PrintMes("签名加固","green")
+                    sh """
+                    sh jiagu.sh
+                    """
                 }
             }
         }
