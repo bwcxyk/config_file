@@ -42,8 +42,10 @@ pipeline{
     
     // 参数化变量
     parameters {
+    // 构建工具参数
+    string(name: 'BUILD_ARGS', defaultValue: '', description: '可选的构建工具参数')
     // 镜像仓库
-    choice choices: ['local', 'aliyun', 'huaweicloud'], description: '镜像仓库', name: 'registry'
+    choice choices: ['local', 'aliyun', 'huaweicloud'], description: '镜像仓库', name: 'REGISTRY'
     }
 
     stages{
@@ -64,7 +66,7 @@ pipeline{
                 container('maven'){
                     script{
                         tools.PrintMes("执行打包","green")
-                        maven.deploy()
+                        maven.deploy(params.BUILD_ARGS ?: '')
                     }
                 }
             }
@@ -77,33 +79,15 @@ pipeline{
                     script{
                         tools.PrintMes("构建镜像","green")
                         docker.docker()
-                        // 单体项目只需传入镜像名称
-                        docker.build("wcpt-edi-wcpt-service").push()
-                        // 子项目需要传入子项目路径和镜像名称
-                        docker.build("$WORKSPACE/wcpt-edi-api", "wcpt-edi-api").push()
-                    }
-                }
-            }
-        }
-
-        // kaniko 构建镜像
-        stage("KanikoBuildImages"){
-            steps{
-                container('kaniko'){
-                    script{
-                        tools.PrintMes("构建上传镜像","green")
-                        sh """
-                        /kaniko/executor \
-                            --dockerfile=ddh-server/Dockerfile \
-                            --context=dir://. \
-                            --destination=192.168.1.60/library/demo:1.0
-                        """
+                        docker.build(path: "eprint-web", project: "eprint-service").push()
                     }
                 }
             }
         }
 
     }
+
+}
 
     post {
         success {
