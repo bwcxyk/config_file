@@ -3,18 +3,21 @@
 @Library('jenkinslibrary@master') _
 
 //func from shareibrary
-def build = new org.devops.build()
 def tools = new org.devops.tools()
+def checkout = new org.devops.checkout()
+def gradle = new org.devops.gradle()
 def android = new org.devops.android()
-
-//def runOpts
-//env
-String buildType = "${env.buildType}"
-String buildShell = "${env.buildShell}"
 
 //pipeline
 pipeline{
-    agent { node { label "build"}}
+    agent{
+        kubernetes{
+            defaultContainer 'node'
+            inheritFrom 'jenkins-slave'
+            yaml podYaml
+            showRawYaml false
+        }
+    }
 
     // 指定运行的选项（可选）
     options {
@@ -23,19 +26,17 @@ pipeline{
         //保持构建的最大个数
         buildDiscarder(logRotator(numToKeepStr: '5'))
         // 设置Pipeline运行的超时时间
-        //timeout(time: 1, unit: 'HOURS')
+        // timeout(time: 1, unit: 'HOURS')
         // 日志会有时间
         //timestamps()
         // 禁止并行
-        //disableConcurrentBuilds()
+        disableConcurrentBuilds abortPrevious: true
     }
 
     // 参数化变量
     parameters {
-    // 构建类型
-    string(name:'buildType', defaultValue: 'gradle', description: '构建类型')
-    // 构建命令
-    string(name:'buildShell', defaultValue: 'clean build -q', description: '构建命令')
+    // 构建工具参数
+    string(name: 'BUILD_ARGS', defaultValue: '', description: '可选的构建工具参数')
     }
     
     stages{
@@ -44,16 +45,18 @@ pipeline{
             steps {
                 script{
                     tools.PrintMes("检出代码","green")
-                    checkout scm
+                    checkout.checkoutCustom()
                 }
             }
         }
 
         stage("Build"){
             steps{
-                script{
-                    tools.PrintMes("执行打包","green")
-                    build.Build(buildType,buildShell)
+                container('gradle') {
+                    script{
+                        tools.PrintMes("执行打包","green")
+                        gradle.build(params.BUILD_ARGS ?: '')
+                    }
                 }
             }
         }
