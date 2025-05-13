@@ -7,6 +7,7 @@ def tools = new org.devops.tools()
 def checkout = new org.devops.checkout()
 def maven = new org.devops.maven()
 def docker = new org.devops.docker()
+def kubectl = new org.devops.kubectl()
 
 // 读取资源文件
 def podYaml = libraryResource 'org/devops/pipeline/podyaml/MavenPod.yaml'
@@ -23,7 +24,8 @@ pipeline{
     }
 
     environment {
-        repo = "yuanfu-tms"
+        repo = "public"
+        k8s_namespace = "default"
     }
 
     // 指定运行的选项（可选）
@@ -44,6 +46,8 @@ pipeline{
     parameters {
     // 构建工具参数
     string(name: 'BUILD_ARGS', defaultValue: '', description: '可选的构建工具参数')
+    // 构建环境
+    choice choices: ['dev', 'prod'], description: '构建环境', name: 'BUILD_ENV'
     // 镜像仓库
     choice choices: ['local', 'aliyun', 'huaweicloud'], description: '镜像仓库', name: 'REGISTRY'
     }
@@ -79,7 +83,20 @@ pipeline{
                     script{
                         tools.PrintMes("构建镜像","green")
                         docker.docker()
-                        docker.build(path: "eprint-web", project: "eprint-service").push()
+                        docker.build(path: "my-demo", project: "demo").push()
+                    }
+                }
+            }
+        }
+
+        // 发布
+        stage("Deploy"){
+            steps{
+                container('kubectl'){
+                    script{
+                        tools.PrintMes("发布","green")
+                        kubectl.init()
+                        kubectl.deploy(project: "demo")
                     }
                 }
             }
