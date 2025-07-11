@@ -9,8 +9,8 @@
 #### 当前状态: **<font color="#67C23A" size=4>已恢复</font>**
 #### 故障主机: {{$v.labels.instance}}
 * ###### 告警阈值: {{$v.labels.threshold}}
-* ###### 开始时间: {{GetCSTtime $v.startsAt}}
-* ###### 恢复时间: {{GetCSTtime $v.endsAt}}
+* ###### 开始时间: {{$v.startsAt}}
+* ###### 恢复时间: {{$v.endsAt}}
 
 #### 告警恢复: <font color="#67C23A">已恢复,{{$v.annotations.description}}</font>
 {{ else }}
@@ -26,7 +26,7 @@
 #### 故障主机: {{$v.labels.instance}}
 * ###### 告警阈值: {{$v.labels.threshold}}
 * ###### 持续时间: {{$v.labels.for_time}}
-* ###### 触发时间: {{GetCSTtime $v.startsAt}}
+* ###### 触发时间: {{$v.startsAt}}
 {{ if eq $v.labels.severity "warning" }}
 #### 告警触发: <font color="#E6A23C">{{$v.annotations.description}}</font>
 {{ else if eq $v.labels.severity "critical" }}
