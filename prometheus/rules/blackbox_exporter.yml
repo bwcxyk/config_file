@@ -10,7 +10,7 @@ groups:
           threshold: "probe_success == 0"
           for_time: "1分钟"
         annotations:
-          description: "{{ $labels.instance }} 连续 1 分钟无法访问 (probe_success=0)"
+          description: "{{ $labels.instance }} 连续 1 分钟无法访问"
 
       - alert: BlackboxProbeHttpFailure
         expr: probe_http_status_code <= 199 OR probe_http_status_code >= 400
@@ -23,11 +23,25 @@ groups:
           description: "{{ $labels.instance }} 返回异常 HTTP 状态码 ({{ $value }})"
 
       - alert: BlackboxSslCertificateWillExpireSoon
-        expr: probe_ssl_earliest_cert_expiry - time() < 86400 * 3
-        for: 5m
+        expr: 3 <= round((last_over_time(probe_ssl_earliest_cert_expiry[10m]) - time()) / 86400, 0.1) < 20
+        for: 0m
         labels:
           severity: warning
-          threshold: "SSL证书有效期 < 3天"
-          for_time: "5分钟"
+          threshold: "20"
         annotations:
-          description: "{{ $labels.instance }} 的 SSL 证书将在 {{ $value | humanizeTimestamp }} 过期（剩余时间不足3天）"
+          summary: "{{ $labels.instance }} SSL证书即将过期"
+          description: |
+            {{ $labels.instance }} SSL证书过期时间小于20天
+            剩余天数: {{ printf "%.1f" $value }}
+      
+      - alert: BlackboxSslCertificateWillExpireSoon
+        expr: 0 <= round((last_over_time(probe_ssl_earliest_cert_expiry[10m]) - time()) / 86400, 0.1) < 3
+        for: 0m
+        labels:
+          severity: critical
+          threshold: "3"
+        annotations:
+          summary: "{{ $labels.instance }} SSL证书即将过期"
+          description: |
+            {{ $labels.instance }} SSL证书过期时间小于3天
+            剩余天数: {{ printf "%.1f" $value }}
