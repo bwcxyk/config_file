@@ -1,5 +1,6 @@
 - targets:
-  - "192.168.100.102:6789"
+  - "192.168.10.201:6789"
   labels:
     env: "prod"
-    service: "bedc-service"
+    project: "tms"
+    service: "cncb-service"
