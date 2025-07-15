@@ -32,33 +32,33 @@ scrape_configs:
       - targets/nodes/*.yml
 
   - job_name: "blackbox-http"
-    metrics_path: /probe # 不是 metrics，是 probe
+    metrics_path: /probe
     params:
-      module: [http_2xx] # 使用 http_2xx 模块
+      module: [http_2xx]
     file_sd_configs:
     - refresh_interval: 1m
       files:
-      - targets/blackbox/http_2xx.yml
+      - targets/blackbox/http.yml
     relabel_configs:
     - source_labels: [__address__]
       target_label: __param_target
     - source_labels: [__param_target]
       target_label: instance
     - target_label: __address__
-      replacement: 127.0.0.1:9115  # blackbox服务地址
+      replacement: 127.0.0.1:9115
 
-  - job_name: "blackbox-http-post"
-    metrics_path: /probe # 不是 metrics，是 probe
+  - job_name: "blackbox-bedc"
+    metrics_path: /probe
     params:
-      module: [http_post_2xx] # 使用 http_2xx 模块
+      module: [http_2xx]
     file_sd_configs:
     - refresh_interval: 1m
       files:
-      - targets/blackbox/http_post_2xx.yml
+      - targets/blackbox/bedc.yml
     relabel_configs:
     - source_labels: [__address__]
       target_label: __param_target
     - source_labels: [__param_target]
       target_label: instance
     - target_label: __address__
-      replacement: 127.0.0.1:9115  # blackbox服务地址
+      replacement: 192.168.10.66:9115
