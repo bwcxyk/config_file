@@ -1,13 +1,15 @@
 global:
-  resolve_timeout: 5m
+  resolve_timeout: 5m  # 恢复通知的超时时间
+
 route:
-  group_by: [instance]
-  group_wait: 10m
-  group_interval: 1m
-  repeat_interval: 10m
+  group_by: [alertname, instance]  # 按告警名+实例分组
+  group_wait: 10s      # 新分组首次等待时间
+  group_interval: 30s  # 相同分组内新告警发送间隔
+  repeat_interval: 1h  # 相同告警重复提醒间隔
   receiver: 'web.hook.prometheusalert'
+
 receivers:
 - name: 'web.hook.prometheusalert'
   webhook_configs:
   - url: http://localhost:8060/prometheusalert?type=dd&tpl=prometheus2-dd
-    send_resolved: true
+    send_resolved: true  # 发送恢复通知
