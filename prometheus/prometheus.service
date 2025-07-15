@@ -11,6 +11,7 @@ ExecStart=/usr/local/prometheus/prometheus \
 --web.enable-admin-api \
 --web.enable-lifecycle \
 --web.external-url=http://prom.example.com
+ExecReload=/bin/kill -HUP $MAINPID
 Restart=on-failure
 [Install]
 WantedBy=multi-user.target
