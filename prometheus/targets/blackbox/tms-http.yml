@@ -1,7 +1,18 @@
 - targets:
   - https://example.com/
-  - https://example.com/api/actuator/health/liveness
+  labels:
+    env: "prod"
+    project: "tms"
+    service: "tms-web"
+- targets:
   - https://example.com/tms/actuator/health/liveness
   labels:
     env: "prod"
+    project: "tms"
     service: "tms-service"
+- targets:
+  - https://example.com/yfapi/actuator/health/liveness
+  labels:
+    env: "prod"
+    project: "tms"
+    service: "api-service"
