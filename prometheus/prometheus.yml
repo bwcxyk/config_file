@@ -38,7 +38,7 @@ scrape_configs:
     file_sd_configs:
     - refresh_interval: 1m
       files:
-      - targets/blackbox/http.yml
+      - targets/blackbox/tms-http.yml
     relabel_configs:
     - source_labels: [__address__]
       target_label: __param_target
@@ -54,7 +54,7 @@ scrape_configs:
     file_sd_configs:
     - refresh_interval: 1m
       files:
-      - targets/blackbox/bedc.yml
+      - targets/blackbox/bedc-http.yml
     relabel_configs:
     - source_labels: [__address__]
       target_label: __param_target

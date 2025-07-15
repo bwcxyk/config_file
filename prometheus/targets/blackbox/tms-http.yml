@@ -2,3 +2,6 @@
   - https://example.com/
   - https://example.com/api/actuator/health/liveness
   - https://example.com/tms/actuator/health/liveness
+  labels:
+    env: "prod"
+    service: "tms-service"

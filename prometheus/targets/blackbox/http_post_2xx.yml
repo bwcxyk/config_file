@@ -1,3 +1,0 @@
-- targets:
-  - https://example.com/tms/system/getEnterpriseName.do?syscode=1000
-  - https://example.com/oms/Api/getLTAccessToken
