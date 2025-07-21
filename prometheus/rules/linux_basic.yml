@@ -30,45 +30,48 @@ groups:
         description: |-
           ⚠️ **CPU 负载持续高于 80%**
           - 实例：{{- if $labels.hostname }}{{ $labels.hostname }} {{ end }}{{ $labels.instance }}
-          - 当前值：{{ printf "%.1f%%" $value }}
+          - 当前 CPU 使用率：{{ printf "%.1f%%" $value }}
           - 🔍 建议诊断：`top -n1 -b`
-
+          
     - alert: 主机内存不足
       expr: |
+        node_memory_MemAvailable_bytes < 3 * 1024 * 1024 * 1024  # 小于3GB
+        and
         (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) * 100 < 20
       for: 2m
       labels:
         severity: warning
         for_time: 2m
-        threshold: "20%"
+        threshold: "20% 且 < 3GB"
       annotations:
         summary: "{{- if $labels.hostname }}{{ $labels.hostname }} {{ end }}{{ $labels.instance }} 主机内存不足"
         description: |-
-          ⚠️ **内存可用空间低于 20%**
+          ⚠️ **可用内存低于 20% 且小于 3GB**
           - 实例：{{- if $labels.hostname }}{{ $labels.hostname }} {{ end }}{{ $labels.instance }}
-          - 当前可用：{{ printf "%.1f%%" $value }}
+          - 当前内存可用：{{ humanize $value }}
           - 🔍 建议诊断：`free -m`
 
     - alert: 主机磁盘空间不足
       expr: |
         (
-          node_filesystem_avail_bytes{fstype!~"^(fuse.*|tmpfs|cifs|nfs)"} /
-          node_filesystem_size_bytes
-        ) * 100 < 10
+          node_filesystem_avail_bytes{fstype!~"^(fuse.*|tmpfs|cifs|nfs)"} < 20 * 1024 * 1024 * 1024  # 少于20GB
+          and
+          node_filesystem_avail_bytes{fstype!~"^(fuse.*|tmpfs|cifs|nfs)"} / node_filesystem_size_bytes * 100 < 20
+        )
         and on (instance, device, mountpoint) node_filesystem_readonly == 0
       for: 2m
       labels:
         severity: critical
         for_time: 2m
-        threshold: "10%"
+        threshold: "20% 且 < 20GB"
       annotations:
         summary: "{{- if $labels.hostname }}{{ $labels.hostname }} {{ end }}{{ $labels.instance }} 磁盘空间不足"
         description: |-
-          🚨 **磁盘空间不足 10%**
+          🚨 **磁盘剩余空间少于 20% 且低于 20GB**
           - 实例：{{- if $labels.hostname }}{{ $labels.hostname }} {{ end }}{{ $labels.instance }}
           - 挂载点：{{ $labels.mountpoint }}
           - 文件系统类型：{{ $labels.fstype }}
-          - 当前可用：{{ printf "%.1f%%" $value }}
+          - 当前磁盘可用：{{ humanize $value }}
           - 🔍 建议诊断：`df -h {{ $labels.mountpoint }}`
 
     - alert: 主机磁盘io异常
