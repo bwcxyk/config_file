@@ -1,5 +1,5 @@
 groups:
-  - name: blackbox_network_stats
+  - name: 网络-监控告警
     rules:
 
       - alert: BlackboxProbeDown
