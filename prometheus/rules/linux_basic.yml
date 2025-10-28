@@ -2,7 +2,7 @@ groups:
   - name: Linux主机状态-监控告警
     rules:
     - alert: 监控目标不可达
-      expr: up == 0
+      expr: up {os="linux"} == 1
       for: 1m
       labels:
         severity: critical
