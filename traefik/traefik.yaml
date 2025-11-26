@@ -1,0 +1,58 @@
+services:
+  traefik:
+    image: traefik:v3.4
+    networks:
+      - traefik_proxy
+    ports:
+        # Expose Traefik's entry points to the Swarm
+        # Swarm requires the long syntax for ports.
+      - target: 80 # Container port (Traefik web entry point)
+        published: 80 # Host port exposed on the nodes
+        protocol: tcp
+        # 'host' mode binds directly to the node's IP where the task runs.
+        # 'ingress' mode uses Swarm's Routing Mesh (load balances across nodes).
+        # Choose based on your load balancing strategy. 'host' is often simpler if using an external LB.
+        mode: host
+      - target: 443 # Container port ( Traefik websecure entry point)
+        published: 443 # Host port
+        protocol: tcp
+        mode: host
+      - target: 8080
+        published: 8080
+        protocol: tcp
+        mode: host
+    volumes:
+      # Mount the Docker socket for the Swarm provider
+      # This MUST be run from a manager node to access the Swarm API via the socket.
+      - /var/run/docker.sock:/var/run/docker.sock:ro   # Swarm API socket
+    command:
+      # HTTP EntryPoint
+      - "--entrypoints.web.address=:80"
+
+      # Enable the Docker Swarm provider (instead of Docker provider)
+      - "--providers.swarm.endpoint=unix:///var/run/docker.sock"
+      
+      # Watch for Swarm service changes (requires socket access)
+      - "--providers.swarm.watch=true"
+      
+      # Recommended: Don't expose services by default; require explicit labels
+      - "--providers.swarm.exposedByDefault=false"
+
+      # Specify the default network for Traefik to connect to services
+      - "--providers.swarm.network=traefik_proxy"
+
+      # API & Dashboard
+      - "--api.dashboard=true" # Enable the dashboard
+      - "--api.insecure=true" # Explicitly disable insecure API mod
+    deploy:
+      replicas: 1
+      placement:
+
+      # Placement constraints restrict where Traefik tasks can run.
+      # Running on manager nodes is common for accessing the Swarm API via the socket.
+        constraints:
+          - node.role == manager
+
+networks:
+  traefik_proxy:
+    external: true
