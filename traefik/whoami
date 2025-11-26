@@ -1,0 +1,21 @@
+services:
+  # Deploy the Whoami application
+  whoami:
+    image: traefik/whoami
+    networks:
+      - traefik_proxy
+    deploy:
+      replicas: 1
+      labels:
+        # Enable Service discovery for Traefik
+        - "traefik.enable=true"
+        # Define the WHoami router rule
+        - "traefik.http.routers.whoami.rule=Host(`whoami.example.com`)"
+        # Expose Whoami on the HTTP entrypoint
+        - "traefik.http.routers.whoami.entrypoints=web"
+        # Expose the whoami port number to Traefik
+        - traefik.http.services.whoami.loadbalancer.server.port=80
+
+networks:
+  traefik_proxy:
+    external: true
