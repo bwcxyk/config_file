@@ -141,3 +141,12 @@ groups:
       expr: |
         (1 - node_memory_MemAvailable_bytes /
         node_memory_MemTotal_bytes) * 100
+
+  # node-exporter-dashboard 增加记录规则。
+  - name: node_usage_record_rules
+    interval: 1m
+    rules:
+    - record: cpu:usage:rate1m
+      expr: (1 - avg(irate(node_cpu_seconds_total{mode="idle"}[3m])) by (instance,job)) * 100
+    - record: mem:usage:rate1m
+      expr: (1 - node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) * 100
