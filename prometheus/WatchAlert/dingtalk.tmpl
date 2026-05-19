@@ -1,0 +1,28 @@
+{{- define "Title" -}}
+{{- if not .IsRecovered -}}🔥监控告警{{- else -}}✅告警恢复{{- end -}}
+{{- end }}
+
+{{ define "Event" -}}
+{{- if not .IsRecovered -}}
+## 监控告警-通知
+#### 🔔 监控指标: ${rule_name}
+#### 🔐 告警指纹: ${fingerprint}
+#### 🚨 告警等级: ${severity}
+#### 🚦当前状态: **<font color="#F56C6C">需要处理</font>**
+#### 🖥 故障主机: ${labels.instance}
+#### 🕘 开始时间: {{ .FirstTriggerTime | formatTime }}
+#### 📝 告警事件: ${annotations.description}
+
+{{- else -}}
+## 告警恢复-通知
+#### 🔔 监控指标: ${rule_name}
+#### 🔐 告警指纹: ${fingerprint}
+#### 🚨 告警等级: ${severity}
+#### 🚦当前状态: **<font color="#67C23A" size=4>已恢复</font>**
+#### 🖥 故障主机: ${labels.instance}
+#### 🕘 开始时间: {{ .FirstTriggerTime | formatTime }}
+#### 🕘 恢复时间: {{ .RecoverTime | formatTime }}
+#### 📝 告警事件: ${annotations.description}
+
+{{- end -}}
+{{ end }}
